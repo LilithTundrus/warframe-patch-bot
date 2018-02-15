@@ -9,6 +9,12 @@
   "scripts": {
     "test": "npm run test"
   },
+  "repository": {
+    "url": "https://github.com/LilithTundrus/warframe-patch-bot"
+  },
   "author": "Lilith Tunrus",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "discord.io": "^2.5.3"
+  }
 }
