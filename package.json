@@ -15,6 +15,7 @@
   "author": "Lilith Tunrus",
   "license": "GPL-3.0",
   "dependencies": {
+    "chalk": "^2.3.1",
     "discord.io": "github:woor/discord.io#gateway_v6"
   }
 }
