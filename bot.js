@@ -7,7 +7,16 @@ let os = require('os');                                             // os info l
 let Logger = require('./lib/loggerClass');
 let scraper = require('./lib/scraper');
 let logger = new Logger;
+/* 
+Parts of the bot that we need to get working:
+- At first, handle one server (for testing)
+- Create a scheduler to preiodically check the warframe forum's update section
+- If the header with the number of posts increases, follow the page
+- Get the text of the post
+- if < 2000 characters, paginate and or show a link!
+- Send the message to all registered servers
 
+*/
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
     autorun: true
@@ -67,6 +76,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         }
     }
 });
+
 
 
 // Put the scheduler here!
