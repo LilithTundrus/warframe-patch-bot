@@ -48,8 +48,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         var args = message.substring(1).split(' ');
         var cmd = args[0];
         // log any messages sent to the bot for debugging
-        fs.appendFileSync('discordMessagelog.log', `${user} sent: ${message} at ${Date.now()}`);
-        console.log(`${user} sent: ${message} at ${Date.now()}`);
+        logger.debug(`${user} sent: ${message} at ${Date.now()}`);
         args = args.splice(1);
         switch (cmd) {                                              // bot needs to know if it will execute a command
             case 'help':                                            // display the help file
@@ -73,9 +72,23 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                             message: message
                         });
                     })
+                break;
+            case 'servers':
+                bot.sendMessage({
+                    to: channelID,
+                    message: 'AAAAA'
+                });
+                console.log(bot.servers)
+                bot.getServers()
+                break;
         }
     }
 });
+
+// this is how we can attach function to the bot!
+bot.getServers = function() {
+    console.log(bot.servers.length)
+}
 
 
 
