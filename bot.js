@@ -65,11 +65,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 });
                 break;
             case 'scrape':
-                return scraper.test()
-                    .then((message) => {
+                return scraper.getForumPostCount()
+                    .then((postCountStr) => {
                         bot.sendMessage({
                             to: channelID,
-                            message: message
+                            message: postCountStr
                         });
                     })
                 break;
@@ -78,18 +78,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: 'AAAAA'
                 });
-                console.log(bot.servers)
-                bot.getServers()
+                bot.getServers();
                 break;
         }
     }
 });
 
 // this is how we can attach function to the bot!
-bot.getServers = function() {
-    console.log(bot.servers.length)
+bot.getServers = function () {
+    console.log(bot.servers)
 }
-
 
 
 // Put the scheduler here!
