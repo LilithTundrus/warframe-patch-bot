@@ -17,6 +17,7 @@
   "dependencies": {
     "chalk": "^2.3.1",
     "discord.io": "github:woor/discord.io#gateway_v6",
-    "puppeteer": "^1.0.0"
+    "puppeteer": "^1.0.0",
+    "turndown": "^4.0.1"
   }
 }
