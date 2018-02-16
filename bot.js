@@ -33,7 +33,7 @@ bot.on('ready', function (evt) {                                    // do some l
 });
 
 bot.on('disconnect', function (evt) {
-    logger.warn(`Bot DISCONNECTED at ${new Date().toISOString()}`);
+    logger.warn(`Bot DISCONNECTED at ${new Date().toTimeString()}`);
     logger.debug('Attempting reconnect...');
     bot.connect();
     if (bot.connected == true) {
@@ -76,10 +76,15 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'test':
                 return scraper.retrieveUpdates()
                     .then((test) => {
-                        bot.sendMessage({
-                            to: channelID,
-                            message: test
-                        });
+                        // this isn't intelligently parsing!
+                        if (test.length > 1999) {
+                            return paginateDiscordMessage(channelID, test)
+                        } else {
+                            bot.sendMessage({
+                                to: channelID,
+                                message: test
+                            });
+                        }
                     })
                 break;
             case 'servers':
@@ -99,4 +104,55 @@ bot.getServers = function () {
 }
 
 
+
+
+
 // Put the scheduler here!
+
+
+// Pulled from another bot I amde
+
+/**
+ * @param {number} timeArg time (in seconds) to wait, holding the main call stack
+ * @returns {promise}
+ */
+function wait(timeArg) {
+    return new Promise((resolve) => {
+        setTimeout(function () {
+            resolve('Promise resolved!!');
+        }, timeArg * 1000);
+    });
+}
+
+
+//split messages to 1000 character chunks and send them one by one to ensure they remain 
+//in the same order
+/**
+ * @param {number} channelIDArg 
+ * @param {string} stringToPage 
+ * @returns {promise}
+ */
+function paginateDiscordMessage(channelIDArg, stringToPage) {
+    var chunks = [];
+    for (var i = 0, charsLength = stringToPage.length; i < charsLength; i += 1000) {
+        chunks.push(stringToPage.toString().substring(i, i + 1000));
+        bot.simulateTyping(channelIDArg, function (errorA, responseA) {
+        });
+    }
+    wait(2)
+        .then(() => {
+            var promiseTail = Promise.resolve()
+            chunks.forEach((entry, index) => {
+                bot.simulateTyping(channelIDArg, function (errorA, responseA) {
+                });
+                promiseTail = promiseTail.then(() => {
+                    bot.sendMessage({
+                        to: channelIDArg,
+                        message: chunks[index]
+                    });
+                    return wait(1.5);
+                })
+            })
+            return promiseTail;
+        })
+}
