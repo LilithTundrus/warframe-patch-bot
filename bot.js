@@ -73,6 +73,15 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         });
                     })
                 break;
+            case 'test':
+                return scraper.retrieveUpdates()
+                    .then((test) => {
+                        bot.sendMessage({
+                            to: channelID,
+                            message: test
+                        });
+                    })
+                break;
             case 'servers':
                 bot.sendMessage({
                     to: channelID,
