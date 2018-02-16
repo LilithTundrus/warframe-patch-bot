@@ -45,25 +45,28 @@ bot.on('disconnect', function (evt) {
 
 bot.on('message', function (user, userID, channelID, message, evt) {
     if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
-        var args = message.substring(1).split(' ');
-        var cmd = args[0];
+        let args = message.substring(1).split(' ');
+        let cmd = args[0];
         // log any messages sent to the bot for debugging
         logger.debug(`${user} sent: ${message} at ${Date.now()}`);
         args = args.splice(1);
         switch (cmd) {                                              // bot needs to know if it will execute a command
-            case 'help':                                            // display the help file
+            // Eventually write up a helpfile
+            case 'help':
                 bot.sendMessage({
                     to: channelID,
                     message: 'PlaceHolder'
                 });
                 break;
             // Eventually format this to be pretty and show a LOT more stats
+            // about the bot and what it's for
             case 'ver':
                 bot.sendMessage({
                     to: channelID,
                     message: `Version: ${ver} Running on server: ${os.type()} ${os.hostname()} ${os.platform()} ${os.cpus()[0].model}`
                 });
                 break;
+            // Debugging command
             case 'scrape':
                 return scraper.getForumPostCount()
                     .then((postCountStr) => {
@@ -73,6 +76,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         });
                     })
                 break;
+            // Debugging command
             case 'test':
                 return scraper.retrieveUpdates()
                     .then((test) => {
@@ -87,6 +91,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         }
                     })
                 break;
+            // Debugging command
             case 'servers':
                 bot.sendMessage({
                     to: channelID,
@@ -100,18 +105,27 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 // this is how we can attach function to the bot!
 bot.getServers = function () {
-    console.log(bot.servers)
+    console.log(this.servers);
 }
 
-
-
-
-
 // Put the scheduler here!
+/* 
+Scheduler should preiodically check the Warframe forums
+for a change in count to the number of posts since there's only update
+post and nothing else in this section...
 
+The checker will be on a setInterval function and will take these steps:
+1. Get the warframe count string
+2. Compare it to the current count string
+3. If not match, get the data of the new patch
+4. Format the data and return it as a whole string
+5. The bot will then gather the list of servers it is in
+   and post to the 'announcements' channel (or somehwere else for now)
+6. The message will be sent out in 1,000 character chunks
+7. Update the new forum post count 
+*/
 
 // Pulled from another bot I amde
-
 /**
  * @param {number} timeArg time (in seconds) to wait, holding the main call stack
  * @returns {promise}
@@ -124,35 +138,32 @@ function wait(timeArg) {
     });
 }
 
-
-//split messages to 1000 character chunks and send them one by one to ensure they remain 
-//in the same order
+// Split messages to 1000 character chunks and send them one by one to ensure they remain 
+// in the same order
 /**
  * @param {number} channelIDArg 
  * @param {string} stringToPage 
  * @returns {promise}
  */
 function paginateDiscordMessage(channelIDArg, stringToPage) {
-    var chunks = [];
-    for (var i = 0, charsLength = stringToPage.length; i < charsLength; i += 1000) {
+    let chunks = [];
+    for (let i = 0, charsLength = stringToPage.length; i < charsLength; i += 1000) {
         chunks.push(stringToPage.toString().substring(i, i + 1000));
         bot.simulateTyping(channelIDArg, function (errorA, responseA) {
         });
     }
-    wait(2)
-        .then(() => {
-            var promiseTail = Promise.resolve()
-            chunks.forEach((entry, index) => {
-                bot.simulateTyping(channelIDArg, function (errorA, responseA) {
-                });
-                promiseTail = promiseTail.then(() => {
-                    bot.sendMessage({
-                        to: channelIDArg,
-                        message: chunks[index]
-                    });
-                    return wait(1.5);
-                })
-            })
-            return promiseTail;
+    let promiseTail = Promise.resolve()
+    chunks.forEach((entry, index) => {
+        bot.simulateTyping(channelIDArg, function (errorA, responseA) {
+        });
+        promiseTail = promiseTail.then(() => {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: chunks[index]
+            });
+            // We need to wait since Discord like to send messages out of order
+            return wait(1.5);
         })
+    })
+    return promiseTail;
 }
