@@ -165,44 +165,41 @@ function paginateDiscordMessage(channelIDArg, stringToPage) {
 
 function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
     // Specifically handle forum posts and make the messages look pretty if over 2000 characters
-    logger.debug(JSON.stringify(forumPostMarkdown))
     // If forum post size is under the max size, just send it
     if (forumPostMarkdown.length < 1999) {
         return bot.sendMessage({
             to: channelIDArg,
             message: forumPostMarkdown
         })
-        // Dammit we have to do this ALGORITHIMICALLY
+        // Or else we have to get fancy
     } else {
-        // the main annoyance is trying to keep the formatting correct
         logger.debug('Message is over 2,000 characters, setting up paging process...');
-        let messageTail = Promise.resolve();
         // Split the string into an array by the \n breaks
         let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
-        // let chunkingObj = addMessageChunksUntilLimit(chunkedMessage, 2);
-        // this needs to be recursive aaa!
         return createForumPostMessageTail(channelIDArg, 0, chunkedMessage)
     }
 }
 
 function createTextChunksArrayByNewline(string) {
     let returnArr = string.split('\n');
-    console.log(returnArr);
+    // console.log(returnArr);
     return returnArr;
 }
 
-// Chunk Discord messages while keeping their newlines (I hope, fuck)
+// Chunk Discord messages while keeping their newlines
 function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
     let returnObj = {};
     let chunkStr = '';
     for (const [index, chunk] of arrayOfMessageChunks.entries()) {
         if (index < startIndex) {
-            logger.debug('Skipping this index!')
+            // logger.debug('Skipping this index!');
         } else {
-            console.log(`${chunk}`)
+            // console.log(`${chunk}`);
             if (chunkStr.length < 1000) {
                 chunkStr += `${chunk}\n`;
+            } else if (index == arrayOfMessageChunks.length) {
+                logger.warn('aaaa')
             } else {
                 returnObj.lastCompletedChunkIndex = index;
                 returnObj.chunkString = chunkStr;
@@ -210,23 +207,49 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
             }
         }
     }
-    logger.debug(chunkStr.length)
+    logger.debug(chunkStr.length);
     return returnObj;
 }
 
 //  R E C U R S I V E
 function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
     let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
-    bot.sendMessage({
-        to: channelIDArg,
-        message: chunkingObj.chunkString
-    })
-    if (chunkingObj.lastCompletedChunkIndex < chunkedMessageArr.length - 1) {
+    logger.info(chunkingObj.chunkString)
+    if (chunkingObj.lastCompletedChunkIndex <= chunkedMessageArr.length) {
         logger.debug('Message did not finish!');
-        wait(1).then(() => {
+        // Wait a small amount of time to avoid the messages sending out of order
+        return wait(1).then(() => {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: chunkingObj.chunkString
+            })
             return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
         })
-        // Call this function again with a new start index
+    } else {
+        return wait(1).then(() => {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: 'AAAAAA'
+            })
+        })
+
+        return;
     }
 }
+
+
+function recrusiveTest(chunkIndexStart, chunkedMessageArr) {
+    let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
+    if (chunkingObj.lastCompletedChunkIndex < chunkedMessageArr.length) {
+        logger.debug('Message did not finish!');
+        // Wait a small amount of time to avoid the messages sending out of order
+        return wait(1).then(() => {
+            logger.info(chunkingObj.chunkString)
+            return recrusiveTest(chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
+        })
+    } else {
+        return;
+    }
+}
+
 
