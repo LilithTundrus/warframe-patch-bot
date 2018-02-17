@@ -180,15 +180,9 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
         // Split the string into an array by the \n breaks
         let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
-        let chunkingObj = addMessageChunksUntilLimit(chunkedMessage, 2);
+        // let chunkingObj = addMessageChunksUntilLimit(chunkedMessage, 2);
         // this needs to be recursive aaa!
-        messageTail = messageTail.then(() => {
-            bot.sendMessage({
-                to: channelIDArg,
-                message: chunkingObj.chunkString
-            })
-        })
-        return messageTail;
+        return createForumPostMessageTail(channelIDArg, 0, chunkedMessage)
     }
 }
 
@@ -218,5 +212,21 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
     }
     logger.debug(chunkStr.length)
     return returnObj;
+}
+
+//  R E C U R S I V E
+function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
+    let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
+    bot.sendMessage({
+        to: channelIDArg,
+        message: chunkingObj.chunkString
+    })
+    if (chunkingObj.lastCompletedChunkIndex < chunkedMessageArr.length - 1) {
+        logger.debug('Message did not finish!');
+        wait(1).then(() => {
+            return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
+        })
+        // Call this function again with a new start index
+    }
 }
 
