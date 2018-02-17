@@ -15,6 +15,7 @@ Parts of the bot that we need to get working:
 - Get the text of the post
 - if < 2000 characters, paginate and or show a link!
 - Send the message to all registered servers
+- Create a remote restart ability
 
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
@@ -79,16 +80,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             // Debugging command
             case 'test':
                 return scraper.retrieveUpdates()
-                    .then((test) => {
-                        // this isn't intelligently parsing!
-                        if (test.length > 1999) {
-                            return paginateDiscordMessage(channelID, test)
-                        } else {
-                            bot.sendMessage({
-                                to: channelID,
-                                message: test
-                            });
-                        }
+                    .then((forumPostMarkdownFull) => {
+                        // This function will make the messages sent pretty AND in order
+                        return constructWarframeUpdateMessageQueue(channelID, forumPostMarkdownFull);
                     })
                 break;
             // Debugging command
@@ -166,4 +160,42 @@ function paginateDiscordMessage(channelIDArg, stringToPage) {
         })
     })
     return promiseTail;
+}
+
+
+function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
+    // Specifically handle forum posts and make the messages look pretty if over 2000 characters
+    // we're probably going to want to split it by
+    // Changes and then fixes
+    logger.debug(JSON.stringify(forumPostMarkdown))
+    // If forum post size is under the max per message
+    if (forumPostMarkdown.length < 1999) {
+        return bot.sendMessage({
+            to: channelIDArg,
+            message: forumPostMarkdown
+        })
+        // Dammit we have to do this ALGORITHIMICALLY
+    } else {
+        // the main annoyance is trying to keep the formatting correct
+        logger.debug('Message is over 2,000 characters, setting up paging process...');
+        let messageTail = Promise.resolve();
+
+        // Split the string into an array by the \n breaks
+        let chunkedMessage =  createTextChunksArrayByNewline(forumPostMarkdown);
+        // Shove as many 'chunks' as we can until the message length is again too long
+        messageTail = messageTail.then(() => {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: forumPostMarkdown.substring(0, test.indexOf('**Fixes:**'))
+            })
+        })
+    return messageTail;
+    }
+}
+
+
+function createTextChunksArrayByNewline(string) {
+    let returnArr = string.split('\n');
+    console.log(returnArr);
+    return returnArr;
 }
