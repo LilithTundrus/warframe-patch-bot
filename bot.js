@@ -181,15 +181,17 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
         let messageTail = Promise.resolve();
 
         // Split the string into an array by the \n breaks
-        let chunkedMessage =  createTextChunksArrayByNewline(forumPostMarkdown);
+        let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
+        let test = addMessageChunksUntilLimit(chunkedMessage)
         messageTail = messageTail.then(() => {
             bot.sendMessage({
                 to: channelIDArg,
-                message: forumPostMarkdown.substring(0, test.indexOf('**Fixes:**'))
+                message: test
+
             })
         })
-    return messageTail;
+        return messageTail;
     }
 }
 
@@ -198,4 +200,22 @@ function createTextChunksArrayByNewline(string) {
     let returnArr = string.split('\n');
     console.log(returnArr);
     return returnArr;
+}
+
+// Chunk Discord messages while keeping their newlines (I hope, fuck)
+function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
+    let returnObj = {};
+    let chunkStr = '';
+    for (const [index, chunk] of arrayOfMessageChunks) {
+        console.log('aaaa')
+        if (chunkStr.length < 1000) {
+            chunkStr += `${chunk}\n`;
+        } else {
+            returnObj.lastCompletedChunkIndex = index;
+            break;
+        }
+    }
+    logger.debug(chunkStr.length)
+    returnObj.chunkStr = chunkStr;
+    return returnObj;
 }
