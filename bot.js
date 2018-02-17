@@ -179,22 +179,19 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
         // the main annoyance is trying to keep the formatting correct
         logger.debug('Message is over 2,000 characters, setting up paging process...');
         let messageTail = Promise.resolve();
-
         // Split the string into an array by the \n breaks
         let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
-        let test = addMessageChunksUntilLimit(chunkedMessage)
+        let chunkingObj = addMessageChunksUntilLimit(chunkedMessage)
         messageTail = messageTail.then(() => {
             bot.sendMessage({
                 to: channelIDArg,
-                message: test
-
+                message: test.chunkString
             })
         })
         return messageTail;
     }
 }
-
 
 function createTextChunksArrayByNewline(string) {
     let returnArr = string.split('\n');
@@ -206,16 +203,16 @@ function createTextChunksArrayByNewline(string) {
 function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
     let returnObj = {};
     let chunkStr = '';
-    for (const [index, chunk] of arrayOfMessageChunks) {
-        console.log('aaaa')
+    for (const [index, chunk] of arrayOfMessageChunks.entries()) {
+        console.log(`${chunk}`)
         if (chunkStr.length < 1000) {
             chunkStr += `${chunk}\n`;
         } else {
             returnObj.lastCompletedChunkIndex = index;
+            returnObj.chunkString = chunkStr;
             break;
         }
     }
     logger.debug(chunkStr.length)
-    returnObj.chunkStr = chunkStr;
     return returnObj;
 }
