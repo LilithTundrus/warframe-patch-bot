@@ -198,23 +198,21 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
             // console.log(`${chunk}`);
             if (chunkStr.length < 1000) {
                 chunkStr += `${chunk}\n`;
-            } else if (index == arrayOfMessageChunks.length) {
-                logger.warn('aaaa')
             } else {
                 returnObj.lastCompletedChunkIndex = index;
-                returnObj.chunkString = chunkStr;
                 break;
             }
         }
     }
-    logger.debug(chunkStr.length);
+    returnObj.chunkString = chunkStr;
+    logger.debug(returnObj.chunkString.length);
     return returnObj;
 }
 
 //  R E C U R S I V E
 function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
     let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
-    logger.info(chunkingObj.chunkString)
+    logger.info(JSON.stringify(chunkingObj))
     if (chunkingObj.lastCompletedChunkIndex <= chunkedMessageArr.length) {
         logger.debug('Message did not finish!');
         // Wait a small amount of time to avoid the messages sending out of order
@@ -229,10 +227,9 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
         return wait(1).then(() => {
             bot.sendMessage({
                 to: channelIDArg,
-                message: 'AAAAAA'
+                message: chunkingObj.chunkString
             })
         })
-
         return;
     }
 }
