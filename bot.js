@@ -165,10 +165,8 @@ function paginateDiscordMessage(channelIDArg, stringToPage) {
 
 function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
     // Specifically handle forum posts and make the messages look pretty if over 2000 characters
-    // we're probably going to want to split it by
-    // Changes and then fixes
     logger.debug(JSON.stringify(forumPostMarkdown))
-    // If forum post size is under the max per message
+    // If forum post size is under the max size, just send it
     if (forumPostMarkdown.length < 1999) {
         return bot.sendMessage({
             to: channelIDArg,
@@ -182,7 +180,7 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
         // Split the string into an array by the \n breaks
         let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
-        let chunkingObj = addMessageChunksUntilLimit(chunkedMessage)
+        let chunkingObj = addMessageChunksUntilLimit(chunkedMessage, 2);
         // this needs to be recursive aaa!
         messageTail = messageTail.then(() => {
             bot.sendMessage({
@@ -205,13 +203,17 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
     let returnObj = {};
     let chunkStr = '';
     for (const [index, chunk] of arrayOfMessageChunks.entries()) {
-        console.log(`${chunk}`)
-        if (chunkStr.length < 1000) {
-            chunkStr += `${chunk}\n`;
+        if (index < startIndex) {
+            logger.debug('Skipping this index!')
         } else {
-            returnObj.lastCompletedChunkIndex = index;
-            returnObj.chunkString = chunkStr;
-            break;
+            console.log(`${chunk}`)
+            if (chunkStr.length < 1000) {
+                chunkStr += `${chunk}\n`;
+            } else {
+                returnObj.lastCompletedChunkIndex = index;
+                returnObj.chunkString = chunkStr;
+                break;
+            }
         }
     }
     logger.debug(chunkStr.length)
