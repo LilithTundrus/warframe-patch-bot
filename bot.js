@@ -23,10 +23,11 @@ let bot = new Discord.Client({                                      // Initializ
     autorun: true
 });
 
-logger.debug('Attempting to connect to Discord');
+logger.debug('Attempting to connect to Discord...');
+
 bot.on('ready', function (evt) {                                    // do some logging and start ensure bot is running
-    logger.info('Connected to Discord...');
-    logger.info(`Logged in as: ${bot.username} - (${bot.id})`);
+    logger.info('Connected to Discord');
+    logger.info(`Logged in as: ${bot.username} ID: (${bot.id})`);
     bot.setPresence({                                               // make the bot 'play' soemthing
         idle_since: null,
         game: { name: 'Debug mode' }
@@ -40,7 +41,7 @@ bot.on('disconnect', function (evt) {
     if (bot.connected == true) {
         logger.info('Reconnected to Discord!');
     } else {
-        logger.error('Reconnect failed...');
+        logger.error(new Error('Reconnect failed'));
     }
 });
 
@@ -162,7 +163,6 @@ function paginateDiscordMessage(channelIDArg, stringToPage) {
     return promiseTail;
 }
 
-
 function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
     // Specifically handle forum posts and make the messages look pretty if over 2000 characters
     // we're probably going to want to split it by
@@ -183,10 +183,11 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
         let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
         let chunkingObj = addMessageChunksUntilLimit(chunkedMessage)
+        // this needs to be recursive aaa!
         messageTail = messageTail.then(() => {
             bot.sendMessage({
                 to: channelIDArg,
-                message: test.chunkString
+                message: chunkingObj.chunkString
             })
         })
         return messageTail;
@@ -216,3 +217,4 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
     logger.debug(chunkStr.length)
     return returnObj;
 }
+
