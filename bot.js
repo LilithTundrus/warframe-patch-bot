@@ -6,7 +6,7 @@ let fs = require('fs');                                             // used to r
 let os = require('os');                                             // os info lib built into node
 let Logger = require('./lib/loggerClass');
 let scraper = require('./lib/scraper');
-let logger = new Logger;
+const logger = new Logger;
 let commonLib = require('./lib/common');
 /* 
 Parts of the bot that we need to get working:
@@ -80,9 +80,14 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             // Debugging command
             case 'test':
                 return scraper.retrieveUpdates()
-                    .then((forumPostMarkdownFull) => {
-                        // This function will make the messages sent pretty AND in order
-                        return constructWarframeUpdateMessageQueue(channelID, forumPostMarkdownFull);
+                    .then((responseObj) => {
+                        console.log(responseObj)
+                        if (responseObj.changeBool == true) {
+                            // This function will make the messages sent pretty AND in order
+                            return constructWarframeUpdateMessageQueue(channelID, responseObj.formattedMessage);
+                        } else {
+                            console.log(responseObj.changeBool)
+                        }
                     })
                 break;
             // Debugging command
@@ -102,9 +107,9 @@ bot.getServers = function () {
     console.log(this.servers);
 }
 
-
-bot.initScheduler = function() {
-    setInterval(checkForUpdates, 1000)
+bot.initScheduler = function () {
+    logger.info('Initialized Warframe update check scheduler');
+    setInterval(checkForUpdates, 20 * 1000);
 }
 
 bot.initScheduler()
@@ -129,8 +134,15 @@ The checker will be on a setInterval function and will take these steps:
 function checkForUpdates() {
     // We're going to want to have this function below
     // return an object with an update? boolean
-    // return scraper.retrieveUpdates()
+    return scraper.retrieveUpdates()
+        .then((responseObj) => {
+            logger.debug(responseObj)
+        })
+        .catch((err) => {
+            logger.error(err);
+        })
     logger.debug(Date.now())
+
 }
 
 /**
