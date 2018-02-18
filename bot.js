@@ -68,16 +68,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 });
                 break;
             // Debugging command
-            case 'scrape':
-                return scraper.getForumPostCount()
-                    .then((postCountStr) => {
-                        bot.sendMessage({
-                            to: channelID,
-                            message: postCountStr
-                        });
-                    })
-                break;
-            // Debugging command
             case 'test':
                 return scraper.retrieveUpdates()
                     .then((responseObj) => {
