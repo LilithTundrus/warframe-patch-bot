@@ -113,10 +113,10 @@ bot.getServers = function () {
 
 bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
-    setInterval(checkForUpdates, 20 * 1000);
+    setInterval(checkForUpdates, 30 * 1000);
 }
 
-// bot.initScheduler();
+bot.initScheduler();
 
 // Put the scheduler here!
 /* 
@@ -141,6 +141,14 @@ function checkForUpdates() {
     return scraper.retrieveUpdates()
         .then((responseObj) => {
             logger.debug(JSON.stringify(responseObj, null, 2));
+            // Logical steps:
+            // IF UPDATE, GO THROUGH THE MESSAGING PROCESS
+            // ELSE, DO NOTHING
+            // ON UPDATE, get list of servers and their designated 
+            // channel for providing update announcements
+            // If the bot cannot send the message due to permissions, PM an admin
+            // Else, send the update to ALL servers and change the forum post string so
+            // on next update check it's not double announced
         })
         .catch((err) => {
             logger.error(err);
