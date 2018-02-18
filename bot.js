@@ -102,6 +102,13 @@ bot.getServers = function () {
     console.log(this.servers);
 }
 
+
+bot.initScheduler = function() {
+    setInterval(checkForUpdates, 1000)
+}
+
+bot.initScheduler()
+
 // Put the scheduler here!
 /* 
 Scheduler should preiodically check the Warframe forums
@@ -118,6 +125,13 @@ The checker will be on a setInterval function and will take these steps:
 6. The message will be sent out in 1,000 character chunks
 7. Update the new forum post count 
 */
+
+function checkForUpdates() {
+    // We're going to want to have this function below
+    // return an object with an update? boolean
+    // return scraper.retrieveUpdates()
+    logger.debug(Date.now())
+}
 
 /**
  * @param {number} timeArg time (in seconds) to wait, holding the main call stack
