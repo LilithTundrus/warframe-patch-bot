@@ -133,36 +133,6 @@ function wait(timeArg) {
     });
 }
 
-// Split messages to 1000 character chunks and send them one by one to ensure they remain 
-// in the same order
-/**
- * @param {number} channelIDArg 
- * @param {string} stringToPage 
- * @returns {promise}
- */
-function paginateDiscordMessage(channelIDArg, stringToPage) {
-    let chunks = [];
-    for (let i = 0, charsLength = stringToPage.length; i < charsLength; i += 1000) {
-        chunks.push(stringToPage.toString().substring(i, i + 1000));
-        bot.simulateTyping(channelIDArg, function (errorA, responseA) {
-        });
-    }
-    let promiseTail = Promise.resolve()
-    chunks.forEach((entry, index) => {
-        bot.simulateTyping(channelIDArg, function (errorA, responseA) {
-        });
-        promiseTail = promiseTail.then(() => {
-            bot.sendMessage({
-                to: channelIDArg,
-                message: chunks[index]
-            });
-            // We need to wait since Discord like to send messages out of order
-            return wait(1.5);
-        })
-    })
-    return promiseTail;
-}
-
 function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
     // Specifically handle forum posts and make the messages look pretty if over 2000 characters
     // If forum post size is under the max size, just send it
@@ -195,7 +165,6 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
         if (index < startIndex) {
             // logger.debug('Skipping this index!');
         } else {
-            // console.log(`${chunk}`);
             if (chunkStr.length < 1000) {
                 chunkStr += `${chunk}\n`;
             } else {
@@ -204,19 +173,21 @@ function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
             }
         }
     }
+    // Always make sure we return the string
     returnObj.chunkString = chunkStr;
     logger.debug(returnObj.chunkString.length);
     return returnObj;
 }
 
-//  R E C U R S I V E
+// Recursive
 function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
     let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
     logger.info(JSON.stringify(chunkingObj))
     if (chunkingObj.lastCompletedChunkIndex <= chunkedMessageArr.length) {
         logger.debug('Message did not finish!');
         // Wait a small amount of time to avoid the messages sending out of order
-        return wait(1).then(() => {
+        return wait(1.5).then(() => {
+            bot.simulateTyping(channelIDArg);
             bot.sendMessage({
                 to: channelIDArg,
                 message: chunkingObj.chunkString
@@ -224,29 +195,12 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
             return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
         })
     } else {
-        return wait(1).then(() => {
+        // End the loop, but still wait to make sure these send correctly
+        return wait(1.5).then(() => {
             bot.sendMessage({
                 to: channelIDArg,
                 message: chunkingObj.chunkString
             })
         })
-        return;
     }
 }
-
-
-function recrusiveTest(chunkIndexStart, chunkedMessageArr) {
-    let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
-    if (chunkingObj.lastCompletedChunkIndex < chunkedMessageArr.length) {
-        logger.debug('Message did not finish!');
-        // Wait a small amount of time to avoid the messages sending out of order
-        return wait(1).then(() => {
-            logger.info(chunkingObj.chunkString)
-            return recrusiveTest(chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
-        })
-    } else {
-        return;
-    }
-}
-
-
