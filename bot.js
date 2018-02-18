@@ -81,12 +81,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'test':
                 return scraper.retrieveUpdates()
                     .then((responseObj) => {
-                        console.log(responseObj)
+                        console.log(responseObj);
                         if (responseObj.changeBool == true) {
+                            bot.sendMessage({
+                                to: channelID,
+                                message: `Forum post link: ${responseObj.postURL}`
+                            });
                             // This function will make the messages sent pretty AND in order
                             return constructWarframeUpdateMessageQueue(channelID, responseObj.formattedMessage);
                         } else {
-                            console.log(responseObj.changeBool)
+                            logger.debug(responseObj.changeBool);
                         }
                     })
                 break;
@@ -112,7 +116,7 @@ bot.initScheduler = function () {
     setInterval(checkForUpdates, 20 * 1000);
 }
 
-bot.initScheduler()
+// bot.initScheduler();
 
 // Put the scheduler here!
 /* 
@@ -136,7 +140,7 @@ function checkForUpdates() {
     // return an object with an update? boolean
     return scraper.retrieveUpdates()
         .then((responseObj) => {
-            logger.debug(responseObj)
+            logger.debug(JSON.stringify(responseObj, null, 2));
         })
         .catch((err) => {
             logger.error(err);
