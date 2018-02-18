@@ -7,6 +7,7 @@ let os = require('os');                                             // os info l
 let Logger = require('./lib/loggerClass');
 let scraper = require('./lib/scraper');
 let logger = new Logger;
+let commonLib = require('./lib/common');
 /* 
 Parts of the bot that we need to get working:
 - At first, handle one server (for testing)
@@ -16,7 +17,6 @@ Parts of the bot that we need to get working:
 - if < 2000 characters, paginate and or show a link!
 - Send the message to all registered servers
 - Create a remote restart ability
-
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -24,7 +24,6 @@ let bot = new Discord.Client({                                      // Initializ
 });
 
 logger.debug('Attempting to connect to Discord...');
-
 bot.on('ready', function (evt) {                                    // do some logging and start ensure bot is running
     logger.info('Connected to Discord');
     logger.info(`Logged in as: ${bot.username} ID: (${bot.id})`);
@@ -120,7 +119,6 @@ The checker will be on a setInterval function and will take these steps:
 7. Update the new forum post count 
 */
 
-// Pulled from another bot I amde
 /**
  * @param {number} timeArg time (in seconds) to wait, holding the main call stack
  * @returns {promise}
@@ -133,56 +131,26 @@ function wait(timeArg) {
     });
 }
 
+// Specifically handle forum posts and make the messages look pretty if over 2000 characters
 function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
-    // Specifically handle forum posts and make the messages look pretty if over 2000 characters
     // If forum post size is under the max size, just send it
     if (forumPostMarkdown.length < 1999) {
         return bot.sendMessage({
             to: channelIDArg,
             message: forumPostMarkdown
-        })
+        });
         // Or else we have to get fancy
     } else {
         logger.debug('Message is over 2,000 characters, setting up paging process...');
-        // Split the string into an array by the \n breaks
-        let chunkedMessage = createTextChunksArrayByNewline(forumPostMarkdown);
+        let chunkedMessage = commonLib.createTextChunksArrayByNewline(forumPostMarkdown);
         // Shove as many 'chunks' as we can until the message length is again too long
-        return createForumPostMessageTail(channelIDArg, 0, chunkedMessage)
+        return createForumPostMessageTail(channelIDArg, 0, chunkedMessage);
     }
-}
-
-function createTextChunksArrayByNewline(string) {
-    let returnArr = string.split('\n');
-    // console.log(returnArr);
-    return returnArr;
-}
-
-// Chunk Discord messages while keeping their newlines
-function addMessageChunksUntilLimit(arrayOfMessageChunks, startIndex) {
-    let returnObj = {};
-    let chunkStr = '';
-    for (const [index, chunk] of arrayOfMessageChunks.entries()) {
-        if (index < startIndex) {
-            // logger.debug('Skipping this index!');
-        } else {
-            if (chunkStr.length < 1000) {
-                chunkStr += `${chunk}\n`;
-            } else {
-                returnObj.lastCompletedChunkIndex = index;
-                break;
-            }
-        }
-    }
-    // Always make sure we return the string
-    returnObj.chunkString = chunkStr;
-    logger.debug(returnObj.chunkString.length);
-    return returnObj;
 }
 
 // Recursive
 function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
-    let chunkingObj = addMessageChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
-    logger.info(JSON.stringify(chunkingObj))
+    let chunkingObj = commonLib.addChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
     if (chunkingObj.lastCompletedChunkIndex <= chunkedMessageArr.length) {
         logger.debug('Message did not finish!');
         // Wait a small amount of time to avoid the messages sending out of order
@@ -191,16 +159,17 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
             bot.sendMessage({
                 to: channelIDArg,
                 message: chunkingObj.chunkString
-            })
-            return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr)
+            });
+            return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr);
         })
     } else {
         // End the loop, but still wait to make sure these send correctly
+        logger.info('Finished message recursion loop');
         return wait(1.5).then(() => {
             bot.sendMessage({
                 to: channelIDArg,
                 message: chunkingObj.chunkString
-            })
+            });
         })
     }
 }
