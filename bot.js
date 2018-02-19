@@ -108,29 +108,18 @@ bot.initScheduler = function () {
 
 bot.initScheduler();
 
-// Put the scheduler here!
-/* 
-Scheduler should preiodically check the Warframe forums
-for a change in count to the number of posts since there's only update
-post and nothing else in this section...
-
-The checker will be on a setInterval function and will take these steps:
-1. Get the warframe count string
-2. Compare it to the current count string
-3. If not match, get the data of the new patch
-4. Format the data and return it as a whole string
-5. The bot will then gather the list of servers it is in
-   and post to the 'announcements' channel (or somehwere else for now)
-6. The message will be sent out in 1,000 character chunks
-7. Update the new forum post count 
-*/
-
 function checkForUpdates() {
     // We're going to want to have this function below
     // return an object with an update? boolean
     return scraper.retrieveUpdates()
         .then((responseObj) => {
-            logger.debug(JSON.stringify(responseObj, null, 2));
+            if (responseObj.changeBool == true) {
+                // Updates!!!
+                logger.debug(JSON.stringify(responseObj, null, 2));
+                updateForumPostCountJSON()
+            } else {
+                logger.debug('No Updates...');
+            }
             // Logical steps:
             // IF UPDATE, GO THROUGH THE MESSAGING PROCESS
             // ELSE, DO NOTHING
@@ -200,4 +189,16 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
             });
         })
     }
+}
+
+function updateForumPostCountJSON() {
+    scraper.getForumPostCount()
+        .then((responseStr) => {
+            logger.debug(responseStr);
+            let newObj = {
+                forumPostCount: responseStr
+            }
+            // write the new string to file
+            return fs.writeFileSync('./topicCount.json', JSON.stringify(newObj, null, 2))
+        })
 }
