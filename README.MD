@@ -1,1 +1,32 @@
 # warframe-patch-bot
+
+Welcome! This project is a Discord bot designed for the free-to-play
+game [Warframe](http://warframe.com).
+
+This project is currently in ALPHA, so please stand by.
+
+If you'd like to help contribute, feel free to contact me!
+
+
+## Usage
+
+If you want to run this yourself you'll need to follow standard boilerplate for 
+[Discord.io](https://github.com/izy521/discord.io)
+
+
+## Adding this bot to your server
+
+**Placeholder**
+
+
+## History
+
+- **Alpha 0.0.1**
+    - First working release
+    - Basic bot functions implemented
+
+
+## Contributing
+
+If you'd like to help contribute to this project or create a bot for another chat platform, feel free to
+contact me! I've also done work on telegram/skype bots.
