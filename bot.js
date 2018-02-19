@@ -13,6 +13,7 @@ Parts of the bot that we need to get working:
 - Server register system
 - Server messaging system on a warframe update
 - Double checks on forum data
+- Server-unique command character support (! vs. ^/~/etc.)
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -40,6 +41,7 @@ bot.on('disconnect', function (evt) {
     }
 });
 
+// We'll eventually have to have this check from what server this message is from
 bot.on('message', function (user, userID, channelID, message, evt) {
     if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
         let args = message.substring(1).split(' ');
