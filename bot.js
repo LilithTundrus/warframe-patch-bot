@@ -98,7 +98,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 // this is how we can attach function to the bot!
 bot.getServers = function () {
-    console.log(this.servers);
+    let serversArray = [];
+    Object.keys(this.servers).forEach(function (key) {
+        return serversArray.push(bot.servers[key]);
+    })
+    return serversArray;
 }
 
 bot.initScheduler = function () {
@@ -115,8 +119,10 @@ function checkForUpdates() {
         .then((responseObj) => {
             if (responseObj.changeBool == true) {
                 // Updates!!!
-                logger.debug(JSON.stringify(responseObj, null, 2));
-                commonLib.updateForumPostCountJSON()
+                // logger.debug(JSON.stringify(responseObj, null, 2));
+                let test = bot.getServers();
+                console.log(test)
+                commonLib.updateForumPostCountJSON();
             } else {
                 logger.debug('No Updates...');
             }
