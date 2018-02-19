@@ -11,10 +11,13 @@ let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 /* 
 Parts of the bot that we need to get working:
+- Multi-server support
+- Discord bot sharding
 - Server register system
 - Server messaging system on a warframe update
 - Double checks on forum data
 - Server-unique command character support (! vs. ^/~/etc.)
+- Channel permissions check
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -23,8 +26,7 @@ let bot = new Discord.Client({                                      // Initializ
 
 logger.debug('Attempting to connect to Discord...');
 bot.on('ready', function (evt) {                                    // do some logging and start ensure bot is running
-    logger.info('Connected to Discord');
-    logger.info(`Logged in as: ${bot.username} ID: (${bot.id})`);
+    logger.info('Connected to Discord', `Logged in as: ${bot.username} ID: (${bot.id})`);
     bot.setPresence({                                               // make the bot 'play' soemthing
         idle_since: null,
         game: { name: 'Debug mode' }
@@ -164,11 +166,9 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
             to: channelIDArg,
             message: forumPostMarkdown
         });
-        // Or else we have to get fancy
     } else {
         logger.debug('Message is over 2,000 characters, setting up paging process...');
         let chunkedMessage = commonLib.createTextChunksArrayByNewline(forumPostMarkdown);
-        // Shove as many 'chunks' as we can until the message length is again too long
         return createForumPostMessageTail(channelIDArg, 0, chunkedMessage);
     }
 }
@@ -177,7 +177,6 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
 function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessageArr) {
     let chunkingObj = commonLib.addChunksUntilLimit(chunkedMessageArr, chunkIndexStart);
     if (chunkingObj.lastCompletedChunkIndex <= chunkedMessageArr.length) {
-        logger.debug('Message did not finish!');
         // Wait a small amount of time to avoid the messages sending out of order
         return wait(1.5).then(() => {
             bot.simulateTyping(channelIDArg);
@@ -189,7 +188,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
         })
     } else {
         // End the loop, but still wait to make sure these send correctly
-        logger.info('Finished message recursion loop');
+        logger.info(`Finished message recursion loop for channel: ${channelIDArg}`);
         return wait(1.5).then(() => {
             bot.sendMessage({
                 to: channelIDArg,
