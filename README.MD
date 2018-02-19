@@ -13,6 +13,12 @@ If you'd like to help contribute, feel free to contact me!
 If you want to run this yourself you'll need to follow standard boilerplate for 
 [Discord.io](https://github.com/izy521/discord.io)
 
+### Where's the database schema?
+
+Currently, I'm trying to not have this bot use a database to reduce setup overhead.
+I may add a database component in the future if it becomes needed. For now
+data is stored in a basic, flat JSON file.
+
 
 ## Adding this bot to your server
 
