@@ -14,7 +14,7 @@ Parts of the bot that we need to get working:
 - Multi-server support
 - Discord bot sharding
 - Server register system
-- Server messaging system on a warframe update
+- Server messaging system on a warframe update (we kind of have one)
 - Double checks on forum data
 - Server-unique command character support (! vs. ^/~/etc.)
 - Channel permissions check
@@ -113,24 +113,29 @@ bot.initScheduler = function () {
 
 bot.initScheduler();
 
+
 function checkForUpdates() {
     return scraper.retrieveUpdates()
         .then((responseObj) => {
             if (responseObj.changeBool == true) {
                 // Updates!!!
                 // logger.debug(JSON.stringify(responseObj, null, 2));
-                let test = bot.getServers();
-                console.log(test)
+                let serverList = bot.getServers();
+                console.log(serverList);
                 commonLib.updateForumPostCountJSON();
+                let serverQueue = controller.readServerFile();
+                serverQueue.forEach((entry, index) => {
+                    console.log(entry);
+                    bot.sendMessage({
+                        to: entry.registeredChannelID,
+                        message: `Forum post link: ${responseObj.postURL}`
+                    });
+                    // This is where we need to message each server
+                    return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage)
+                })
             } else {
                 logger.debug('No Updates...');
             }
-            let serverQueue = controller.readServerFile();
-            serverQueue.forEach((entry, index) => {
-                console.log(entry);
-                // This is where we need to message each server
-                return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage)
-            })
             // Logical steps:
             // IF UPDATE, GO THROUGH THE MESSAGING PROCESS
             // ELSE, DO NOTHING
