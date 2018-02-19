@@ -116,7 +116,7 @@ function checkForUpdates() {
             if (responseObj.changeBool == true) {
                 // Updates!!!
                 logger.debug(JSON.stringify(responseObj, null, 2));
-                updateForumPostCountJSON()
+                commonLib.updateForumPostCountJSON()
             } else {
                 logger.debug('No Updates...');
             }
@@ -191,14 +191,3 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
     }
 }
 
-function updateForumPostCountJSON() {
-    scraper.getForumPostCount()
-        .then((responseStr) => {
-            logger.debug(responseStr);
-            let newObj = {
-                forumPostCount: responseStr
-            }
-            // write the new string to file
-            return fs.writeFileSync('./topicCount.json', JSON.stringify(newObj, null, 2))
-        })
-}
