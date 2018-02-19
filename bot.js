@@ -1,5 +1,5 @@
 'use strict';                                                       // more stringent error reporting for small things
-const config = require('./config/config.js');                              // conifg/auth data
+const config = require('./config/config.js');                       // conifg/auth data
 const ver = config.botVersion;
 let Discord = require('discord.io');                                // discord API wrapper
 let fs = require('fs');
@@ -10,13 +10,9 @@ const logger = new Logger;
 let commonLib = require('./lib/common');
 /* 
 Parts of the bot that we need to get working:
-- At first, handle one server (for testing)
-- Create a scheduler to preiodically check the warframe forum's update section
-- If the header with the number of posts increases, follow the page
-- Get the text of the post
-- if < 2000 characters, paginate and or show a link!
-- Send the message to all registered servers
-- Create a remote restart ability
+- Server register system
+- Server messaging system on a warframe update
+- Double checks on forum data
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -113,8 +109,6 @@ bot.initScheduler = function () {
 bot.initScheduler();
 
 function checkForUpdates() {
-    // We're going to want to have this function below
-    // return an object with an update? boolean
     return scraper.retrieveUpdates()
         .then((responseObj) => {
             if (responseObj.changeBool == true) {
@@ -138,8 +132,6 @@ function checkForUpdates() {
         .catch((err) => {
             logger.error(err);
         })
-    logger.debug(Date.now())
-
 }
 
 /**
@@ -196,4 +188,3 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
         })
     }
 }
-
