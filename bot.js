@@ -8,6 +8,7 @@ let Logger = require('./lib/loggerClass');
 let scraper = require('./lib/scraper');
 const logger = new Logger;
 let commonLib = require('./lib/common');
+let controller = require('./lib/storageController');
 /* 
 Parts of the bot that we need to get working:
 - Server register system
@@ -122,6 +123,12 @@ function checkForUpdates() {
             } else {
                 logger.debug('No Updates...');
             }
+            let serverQueue = controller.readServerFile();
+            serverQueue.forEach((entry, index) => {
+                console.log(entry);
+                // This is where we need to message each server
+                return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage)
+            })
             // Logical steps:
             // IF UPDATE, GO THROUGH THE MESSAGING PROCESS
             // ELSE, DO NOTHING
@@ -132,6 +139,7 @@ function checkForUpdates() {
             // on next update check it's not double announced
         })
         .catch((err) => {
+            // This should never happen
             logger.error(err);
         })
 }
