@@ -2,7 +2,7 @@
 const config = require('./config/config.js');                              // conifg/auth data
 const ver = config.botVersion;
 let Discord = require('discord.io');                                // discord API wrapper
-let fs = require('fs');                                             // used to read helpNotes.txt
+let fs = require('fs');
 let os = require('os');                                             // os info lib built into node
 let Logger = require('./lib/loggerClass');
 let scraper = require('./lib/scraper');
