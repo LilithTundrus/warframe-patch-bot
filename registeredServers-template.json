@@ -1,0 +1,9 @@
+[
+    {
+        "serverID": "SERVER_ID",
+        "registeredChannelID": "CHANNEL_ID",
+        "commandCharacter": "^",
+        "ownerID": "OWNER_ID",
+        "name": "SERVER_NAME"
+    }
+]
