@@ -97,6 +97,28 @@ bot.on('message', function (user, userID, channelID, message, evt) {
     }
 });
 
+// When the bot 'joins' a server, this also happens on bot restart so that sucks
+bot.on('guildCreate', function (server) {
+    // console.log('AAAAAAAAA')
+    console.log(server)
+    // Check if this server is in the registeredServers JSON
+    // If not, add it
+    if (controller.checkIfServerIsRegistered({ serverID: server.id }) == true) {
+        // We don't need to do anything
+        console.log('Server is not new')
+        bot.sendMessage({
+            to: server.owner_id, 
+            message: `I see that you are the admin for ${server.name} and you are REGISTERED`
+        })
+    } else {
+        console.log('Server is NEW')
+        bot.sendMessage({
+            to: server.owner_id, 
+            message: `I see that you are the admin for ${server.name} and you need to register or DIE`
+        })
+    }
+});
+
 // this is how we can attach function to the bot!
 bot.getServers = function () {
     let serversArray = [];
