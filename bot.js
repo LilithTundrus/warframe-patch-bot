@@ -85,15 +85,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         }
                     })
                 break;
-            // Debugging command
-            case 'servers':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'AAAAA'
-                });
-                bot.getServers();
-                break;
             case 'register':
+                return registrationHandler(userID, channelID)
             // be silent until we can confirm the user who sent the command is an admin
         }
     }
@@ -128,9 +121,7 @@ bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
     setInterval(checkForUpdates, 30 * 1000);
 }
-
 bot.initScheduler();
-
 
 function checkForUpdates() {
     return scraper.retrieveUpdates()
@@ -219,4 +210,13 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
             });
         })
     }
+}
+
+
+function registrationHandler(userID, channelID) {
+    // Stay silent until we confirm the user is an admin for a server
+    // If not, send a permission denied message
+    logger.debug(`Registration activated by ${userID}`);
+    // Steps: check if user is an admin
+    // IF ADMIN, check for MULTIPLE servers
 }
