@@ -125,10 +125,25 @@ bot.getServers = function () {
     return serversArray;
 }
 
+bot.getServerChannelsByID = function (serverID) {
+    let channelArray = [];
+    let serverList = this.getServers();
+    for (let server of serverList) {
+        if (server.id == serverID) {
+            // check for the channel
+            Object.keys(server.channels).forEach(function (key) {
+                channelArray.push(server.channels[key]);
+            })
+        }
+    }
+    return channelArray;
+}
+
 bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
     setInterval(checkForUpdates, 30 * 1000);
 }
+
 bot.initScheduler();
 
 function checkForUpdates() {
@@ -218,10 +233,19 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
     }
 }
 
+function getChannelIDByName(channelArray, nameToMatch) {
+    let channelID = '';
+    channelArray.forEach((channelObj, index) => {
+        if (channelObj.name == nameToMatch) {
+            logger.debug('Found a channel match');
+            channelID = channelObj.id
+        }
+    })
+    return channelID;
+}
 
 function registrationHandler(userID, channelID, channelNameToRegister) {
-    // Stay silent until we confirm the user is an admin for a server
-    // If not, send a permission denied message
+    // Stay silent until we confirm the user is an admin for a server. If not, send a permission denied message
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
     let serversOwned = [];
@@ -240,10 +264,11 @@ function registrationHandler(userID, channelID, channelNameToRegister) {
         bot.sendMessage({
             to: channelID,
             message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
-        }, function (err, response) {
-            // we want to get the user to respond! 
-            console.log(response)
         })
+        let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
+        // Check the channels for a name match
+        let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister)
+        console.log(channelIDToRegister)
     }
     // Steps: check if user is an admin
     // IF ADMIN, check for MULTIPLE servers
