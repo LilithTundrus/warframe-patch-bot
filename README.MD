@@ -27,6 +27,12 @@ data is stored in a basic, flat JSON file.
 
 ## History
 
+- **Alpha 0.0.2**
+    - Registration code partially implemented (No multi-server owner support yet, no error handling yet)
+    - Storage Controller code is 20% implemented
+    - Bot now has several server-related helper functions
+
+
 - **Alpha 0.0.1**
     - First working release
     - Basic bot functions implemented
