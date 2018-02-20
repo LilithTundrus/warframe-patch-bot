@@ -86,7 +86,15 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     })
                 break;
             case 'register':
-                return registrationHandler(userID, channelID)
+                if (args[0] == undefined) {
+                    bot.sendMessage({
+                        to: channelID,
+                        message: `Please give a channel name you want me to send messages to!\n\nExample: ^register announcements`
+                    });
+                } else {
+                    return registrationHandler(userID, channelID, args[0])
+                }
+
             // be silent until we can confirm the user who sent the command is an admin
         }
     }
@@ -146,8 +154,6 @@ function checkForUpdates() {
                 logger.debug('No Updates...');
             }
             // Logical steps:
-            // IF UPDATE, GO THROUGH THE MESSAGING PROCESS
-            // ELSE, DO NOTHING
             // ON UPDATE, get list of servers and their designated 
             // channel for providing update announcements
             // If the bot cannot send the message due to permissions, PM an admin
@@ -213,10 +219,36 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
 }
 
 
-function registrationHandler(userID, channelID) {
+function registrationHandler(userID, channelID, channelNameToRegister) {
     // Stay silent until we confirm the user is an admin for a server
     // If not, send a permission denied message
-    logger.debug(`Registration activated by ${userID}`);
+    logger.debug(`Registration started by ${userID}`);
+    let workingList = bot.getServers();
+    let serversOwned = [];
+    workingList.forEach((serverObj, index) => {
+        // Check for more than one server with their owner_id
+        if (serverObj.owner_id == userID) {
+            serversOwned.push(serverObj);
+        }
+    })
+    console.log(serversOwned.length);
+    if (serversOwned.length < 1) {
+        // send an error message
+    } else if (serversOwned.length > 1) {
+        // Ask for which server they want to register
+    } else {
+        bot.sendMessage({
+            to: channelID,
+            message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
+        }, function (err, response) {
+            // we want to get the user to respond! 
+            console.log(response)
+        })
+    }
     // Steps: check if user is an admin
     // IF ADMIN, check for MULTIPLE servers
+    // IF MULTIPLE, ask the user for which
+    // Else, ask them for which channel they want to have annouuncements made
+    // Make sure the permissions are correct
+    // add the data to the registeredServers.json file
 }
