@@ -17,6 +17,7 @@ Parts of the bot that we need to get working:
 - Server messaging system on a warframe update (we kind of have one)
 - Double checks on forum data
 - Server-unique command character support (! vs. ^/~/etc.)
+- Registered server data integrity check
 - Channel permissions check
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
@@ -44,7 +45,6 @@ bot.on('disconnect', function (evt) {
     }
 });
 
-// We'll eventually have to have this check from what server this message is from
 bot.on('message', function (user, userID, channelID, message, evt) {
     if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
         let args = message.substring(1).split(' ');
@@ -244,7 +244,7 @@ function getChannelIDByName(channelArray, nameToMatch) {
     return channelID;
 }
 
-function registrationHandler(userID, channelID, channelNameToRegister) {
+function registrationHandler(userID, channelIDArg, channelNameToRegister) {
     // Stay silent until we confirm the user is an admin for a server. If not, send a permission denied message
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
@@ -258,28 +258,30 @@ function registrationHandler(userID, channelID, channelNameToRegister) {
     console.log(serversOwned.length);
     if (serversOwned.length < 1) {
         // send an error message
+        bot.sendMessage({
+            to: channelIDArg,
+            message: `Sorry, it doesn't seem like you are the owner of any servers`
+        })
     } else if (serversOwned.length > 1) {
         // Ask for which server they want to register
     } else {
+        // Make sure they aren't alredy registered
         bot.sendMessage({
-            to: channelID,
+            to: channelIDArg,
             message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
         })
         let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
-        // Check the channels for a name match
+        // Check the channel's for a name match
         let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister);
         if (channelIDToRegister.length < 1) {
             logger.debug('Null channelIDToRegister value')
         } else {
             console.log(channelIDToRegister);
             controller.registerServer({ serverID: serversOwned[0].id, registeredChannelID: channelIDToRegister, commandCharacter: '^', ownerID: serversOwned[0].owner_id, name: serversOwned[0].name });
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `Done! This channel should receive update text on the next Warframe update!`
+            })
         }
-
     }
-    // Steps: check if user is an admin
-    // IF ADMIN, check for MULTIPLE servers
-    // IF MULTIPLE, ask the user for which
-    // Else, ask them for which channel they want to have annouuncements made
-    // Make sure the permissions are correct
-    // add the data to the registeredServers.json file
 }
