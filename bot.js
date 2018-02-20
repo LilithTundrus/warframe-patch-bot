@@ -240,7 +240,7 @@ function getChannelIDByName(channelArray, nameToMatch) {
             logger.debug('Found a channel match');
             channelID = channelObj.id
         }
-    })
+    });
     return channelID;
 }
 
@@ -268,7 +268,8 @@ function registrationHandler(userID, channelID, channelNameToRegister) {
         let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
         // Check the channels for a name match
         let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister)
-        console.log(channelIDToRegister)
+        console.log(channelIDToRegister);
+        controller.registerServer({ serverID: 'a', registeredChannelID: 'a', commandCharacter: 'a', ownerID: 'a', name: 'a' });
     }
     // Steps: check if user is an admin
     // IF ADMIN, check for MULTIPLE servers
