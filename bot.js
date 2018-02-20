@@ -267,9 +267,14 @@ function registrationHandler(userID, channelID, channelNameToRegister) {
         })
         let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
         // Check the channels for a name match
-        let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister)
-        console.log(channelIDToRegister);
-        controller.registerServer({ serverID: 'a', registeredChannelID: 'a', commandCharacter: 'a', ownerID: 'a', name: 'a' });
+        let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister);
+        if (channelIDToRegister.length < 1) {
+            logger.debug('Null channelIDToRegister value')
+        } else {
+            console.log(channelIDToRegister);
+            controller.registerServer({ serverID: serversOwned[0].id, registeredChannelID: channelIDToRegister, commandCharacter: '^', ownerID: serversOwned[0].owner_id, name: serversOwned[0].name });
+        }
+
     }
     // Steps: check if user is an admin
     // IF ADMIN, check for MULTIPLE servers
