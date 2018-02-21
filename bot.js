@@ -89,13 +89,19 @@ bot.on('guildCreate', function (server) {
         // We don't need to do anything
         logger.debug(`Server ${server.id} is already registered`);
     } else {
-        console.log(`Server ${server.id} is NOT registered`)
+        console.log(`Server ${server.id} is NOT registered`);
+        // Display the intro message here (THIS NEEDS TO BE UPDATED)
         bot.sendMessage({
             to: server.owner_id,
             message: `Hi! It seems that you or another admin on your server ${server.name} has added me.\n\nPlease use the register command (^register) to get started.`
         })
     }
 });
+
+bot.on('guildDelete', function (server) {
+    logger.warn(`Left server with ID ${server.id}`);
+    // Unregister the server here
+})
 
 // this is how we can attach function to the bot!
 bot.getServers = function () {
@@ -208,17 +214,6 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
     }
 }
 
-function getChannelIDByName(channelArray, nameToMatch) {
-    let channelID = '';
-    channelArray.forEach((channelObj, index) => {
-        if (channelObj.name == nameToMatch) {
-            logger.debug('Found a channel match');
-            channelID = channelObj.id
-            return channelObj.id
-        }
-    });
-    return channelID;
-}
 
 function registrationHandler(userID, channelIDArg, channelNameToRegister) {
     logger.debug(`Registration started by ${userID}`);
@@ -239,13 +234,19 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister) {
         // Ask for which server they want to register
     } else {
         // Make sure they aren't alredy registered
+        if (controller.checkIfServerIsRegistered({ serverID: serversOwned[0].id })) {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `It looks like the only server you contain ownership of is already registered: ${serversOwned[0].name}`
+            })
+        }
         bot.sendMessage({
             to: channelIDArg,
             message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
         })
         let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
         // Check the channel's for a name match
-        let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister);
+        let channelIDToRegister = commonLib.getChannelIDByName(channelsToCheck, channelNameToRegister);
         if (channelIDToRegister.length < 1) {
             logger.debug('Null channelIDToRegister value');
             bot.sendMessage({
@@ -254,12 +255,16 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister) {
             });
         } else {
             // Check permissions on the channel
+            // Send a message to the channel to check and show the help message!
             console.log(channelIDToRegister);
             controller.registerServer({ serverID: serversOwned[0].id, registeredChannelID: channelIDToRegister, commandCharacter: '^', ownerID: serversOwned[0].owner_id, name: serversOwned[0].name });
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `Done! This channel should receive update text on the next Warframe update!`
-            });
+            return wait(1)
+                .then(() => {
+                    bot.sendMessage({
+                        to: channelIDArg,
+                        message: `Done! This channel should receive update text on the next Warframe update!`
+                    });
+                })
         }
     }
 }
