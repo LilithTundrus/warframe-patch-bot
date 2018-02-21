@@ -4,20 +4,19 @@ const ver = config.botVersion;
 let Discord = require('discord.io');                                // discord API wrapper
 let fs = require('fs');
 let os = require('os');                                             // os info lib built into node
-let Logger = require('./lib/loggerClass');
+let Logger = require('./lib/loggerClass');                          // Custom (basic) logger solution
 let scraper = require('./lib/scraper');
 const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
-/* 
-Parts of the bot that we need to get working:
-- Multi-server support
+/* Parts of the bot that we need to get working:
 - Discord bot sharding
 - Server register system
 - Server messaging system on a warframe update (we kind of have one)
 - Double checks on forum data
 - Server-unique command character support (! vs. ^/~/etc.)
 - Registered server data integrity check
+- Make messages an embed! (They're pretty)
 - Channel permissions check
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
@@ -68,23 +67,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     message: `Version: ${ver} Running on server: ${os.type()} ${os.hostname()} ${os.platform()} ${os.cpus()[0].model}`
                 });
                 break;
-            // Debugging command
-            case 'test':
-                return scraper.retrieveUpdates()
-                    .then((responseObj) => {
-                        console.log(responseObj);
-                        if (responseObj.changeBool == true) {
-                            bot.sendMessage({
-                                to: channelID,
-                                message: `Forum post link: ${responseObj.postURL}`
-                            });
-                            // This function will make the messages sent pretty AND in order
-                            return constructWarframeUpdateMessageQueue(channelID, responseObj.formattedMessage);
-                        } else {
-                            logger.debug(responseObj.changeBool);
-                        }
-                    })
-                break;
             case 'register':
                 if (args[0] == undefined) {
                     bot.sendMessage({
@@ -92,9 +74,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         message: `Please give a channel name you want me to send messages to!\n\nExample: ^register announcements`
                     });
                 } else {
-                    return registrationHandler(userID, channelID, args[0])
+                    return registrationHandler(userID, channelID, args[0]);
                 }
-
             // be silent until we can confirm the user who sent the command is an admin
         }
     }
@@ -141,7 +122,7 @@ bot.getServerChannelsByID = function (serverID) {
 
 bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
-    setInterval(checkForUpdates, 30 * 1000);
+    setInterval(checkForUpdates, 1 * 60 * 1000);
 }
 
 bot.initScheduler();
@@ -151,11 +132,11 @@ function checkForUpdates() {
         .then((responseObj) => {
             if (responseObj.changeBool == true) {
                 // Updates!!!
-                // logger.debug(JSON.stringify(responseObj, null, 2));
                 let serverList = bot.getServers();
                 console.log(serverList);
                 commonLib.updateForumPostCountJSON();
                 let serverQueue = controller.readServerFile();
+                // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
                     console.log(entry);
                     bot.sendMessage({
@@ -163,17 +144,11 @@ function checkForUpdates() {
                         message: `Forum post link: ${responseObj.postURL}`
                     });
                     // This is where we need to message each server
-                    return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage)
+                    return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage);
                 })
             } else {
                 logger.debug('No Updates...');
             }
-            // Logical steps:
-            // ON UPDATE, get list of servers and their designated 
-            // channel for providing update announcements
-            // If the bot cannot send the message due to permissions, PM an admin
-            // Else, send the update to ALL servers and change the forum post string so
-            // on next update check it's not double announced
         })
         .catch((err) => {
             // This should never happen
@@ -239,23 +214,21 @@ function getChannelIDByName(channelArray, nameToMatch) {
         if (channelObj.name == nameToMatch) {
             logger.debug('Found a channel match');
             channelID = channelObj.id
+            return channelObj.id
         }
     });
     return channelID;
 }
 
 function registrationHandler(userID, channelIDArg, channelNameToRegister) {
-    // Stay silent until we confirm the user is an admin for a server. If not, send a permission denied message
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
     let serversOwned = [];
     workingList.forEach((serverObj, index) => {
-        // Check for more than one server with their owner_id
         if (serverObj.owner_id == userID) {
             serversOwned.push(serverObj);
         }
-    })
-    console.log(serversOwned.length);
+    });
     if (serversOwned.length < 1) {
         // send an error message
         bot.sendMessage({
@@ -274,14 +247,19 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister) {
         // Check the channel's for a name match
         let channelIDToRegister = getChannelIDByName(channelsToCheck, channelNameToRegister);
         if (channelIDToRegister.length < 1) {
-            logger.debug('Null channelIDToRegister value')
+            logger.debug('Null channelIDToRegister value');
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+            });
         } else {
+            // Check permissions on the channel
             console.log(channelIDToRegister);
             controller.registerServer({ serverID: serversOwned[0].id, registeredChannelID: channelIDToRegister, commandCharacter: '^', ownerID: serversOwned[0].owner_id, name: serversOwned[0].name });
             bot.sendMessage({
                 to: channelIDArg,
                 message: `Done! This channel should receive update text on the next Warframe update!`
-            })
+            });
         }
     }
 }
