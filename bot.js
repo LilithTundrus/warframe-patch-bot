@@ -18,6 +18,7 @@ let controller = require('./lib/storageController');
 - Registered server data integrity check
 - Make messages an embed! (They're pretty)
 - Channel permissions check
+- On leave, remove the server!
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -100,7 +101,8 @@ bot.on('guildCreate', function (server) {
 
 bot.on('guildDelete', function (server) {
     logger.warn(`Left server with ID ${server.id}`);
-    // Unregister the server here
+    // Unregister the server
+    controller.unregisterServer({serverID: server.id});
 })
 
 // this is how we can attach function to the bot!
