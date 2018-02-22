@@ -127,6 +127,16 @@ bot.getServerChannelsByID = function (serverID) {
     return channelArray;
 }
 
+bot.matchServerByName = function (serverArray, nameToMatch) {
+    let serverObj = {};
+    for (let server of serverArray) {
+        if (server.name.toLowerCase() == nameToMatch.toLowerCase()) {
+            serverObj = Object.assign({}, server)
+        }
+    }
+    return serverObj;
+}
+
 bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
     setInterval(checkForUpdates, 5 * 60 * 1000);
@@ -214,7 +224,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
     }
 }
 
-
+// we're going to have to handle those pesky \' and other escaped characters
 function registrationHandler(userID, channelIDArg, channelNameToRegister, serverNameOptional) {
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
@@ -236,11 +246,13 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             logger.debug('Multi-server user tried to register without giving a server name')
             bot.sendMessage({
                 to: channelIDArg,
-                message: `Please run this command again with a server argument: ^register <channel_name> <server_name>`
+                message: `Since you own multple servers. Please run this command again with a server argument: ^register <channel_name> <server_name>`
             })
         } else {
             // do the normal thing here
-            
+            // get the server index by matching the passed name
+            let serverObjMatched = bot.matchServerByName(serversOwned, serverNameOptional);
+            console.log(serverObjMatched)
         }
 
     } else {
@@ -268,19 +280,23 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             // Check permissions on the channel
             // Send a message to the channel to check and show the help message!
             console.log(channelIDToRegister);
-            controller.registerServer({ serverID: serversOwned[0].id, registeredChannelID: channelIDToRegister, commandCharacter: '^', ownerID: serversOwned[0].owner_id, name: serversOwned[0].name });
-            return wait(1)
-                .then(() => {
-                    bot.sendMessage({
-                        to: channelIDArg,
-                        message: `Done! This channel should receive update text on the next Warframe update!`
-                    });
-                })
+            registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name)
         }
     }
 }
 
 
-function registerServer() {
+function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID, serverName) {
     // Actually register the server from args here!
+    // Check permissions on the channel
+    // Send a message to the channel to check and show the help message!
+    console.log(channelIDToRegister);
+    controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
+    return wait(1)
+        .then(() => {
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `Done! This channel should receive update text on the next Warframe update!`
+            });
+        })
 }
