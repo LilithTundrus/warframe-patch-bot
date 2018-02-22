@@ -11,13 +11,12 @@ let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 /* Parts of the bot that we need to get working:
 - Discord bot sharding
-- Server register system
 - Server messaging system on a warframe update (we kind of have one)
 - Server-unique command character support (! vs. ^/~/etc.)
-- Registered server data integrity check
+- Registered server data integrity check (and periodic backups)
 - Make messages an embed! (They're pretty)
 - Channel permissions check
-- On leave, remove the server!
+- General performance improvements
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -104,7 +103,6 @@ bot.on('guildDelete', function (server) {
     controller.unregisterServer({ serverID: server.id });
 })
 
-// this is how we can attach function to the bot!
 bot.getServers = function () {
     let serversArray = [];
     Object.keys(this.servers).forEach(function (key) {
@@ -138,8 +136,8 @@ bot.matchServerByName = function (serverArray, nameToMatch) {
 }
 
 bot.initScheduler = function () {
-    logger.info('Initialized Warframe update check scheduler');
     setInterval(checkForUpdates, 5 * 60 * 1000);
+    logger.info('Initialized Warframe update check scheduler');
 }
 
 bot.initScheduler();
@@ -159,7 +157,6 @@ function checkForUpdates() {
                         to: entry.registeredChannelID,
                         message: `Forum post link: ${responseObj.postURL}`
                     });
-                    // This is where we need to message each server
                     return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage);
                 })
             } else {
@@ -224,7 +221,6 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
     }
 }
 
-// we're going to have to handle those pesky \' and other escaped characters
 // This is getting to be too long
 function registrationHandler(userID, channelIDArg, channelNameToRegister, serverNameOptional) {
     logger.debug(`Registration started by ${userID}`);
@@ -341,7 +337,7 @@ function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
         bot.sendMessage({
             to: channelIDArg,
             message: `It looks like the server you contain ownership of is already registered: ${serverName}`
-        })
+        });
         return true;
     } else {
         logger.debug(`Server ${serverName} is NOT registered`);
