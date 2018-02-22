@@ -13,7 +13,6 @@ let controller = require('./lib/storageController');
 - Discord bot sharding
 - Server register system
 - Server messaging system on a warframe update (we kind of have one)
-- Double checks on forum data
 - Server-unique command character support (! vs. ^/~/etc.)
 - Registered server data integrity check
 - Make messages an embed! (They're pretty)
@@ -75,7 +74,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         message: `Please give a channel name you want me to send messages to!\n\nExample: ^register announcements`
                     });
                 } else {
-                    return registrationHandler(userID, channelID, args[0]);
+                    return registrationHandler(userID, channelID, args[0], args[1]);
                 }
             // be silent until we can confirm the user who sent the command is an admin
         }
@@ -102,7 +101,7 @@ bot.on('guildCreate', function (server) {
 bot.on('guildDelete', function (server) {
     logger.warn(`Left server with ID ${server.id}`);
     // Unregister the server
-    controller.unregisterServer({serverID: server.id});
+    controller.unregisterServer({ serverID: server.id });
 })
 
 // this is how we can attach function to the bot!
@@ -130,7 +129,7 @@ bot.getServerChannelsByID = function (serverID) {
 
 bot.initScheduler = function () {
     logger.info('Initialized Warframe update check scheduler');
-    setInterval(checkForUpdates, 1 * 60 * 1000);
+    setInterval(checkForUpdates, 5 * 60 * 1000);
 }
 
 bot.initScheduler();
@@ -141,12 +140,11 @@ function checkForUpdates() {
             if (responseObj.changeBool == true) {
                 // Updates!!!
                 let serverList = bot.getServers();
-                console.log(serverList);
                 commonLib.updateForumPostCountJSON();
                 let serverQueue = controller.readServerFile();
                 // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
-                    console.log(entry);
+                    logger.debug(`Notifying server with ID ${entry.serverID}`);
                     bot.sendMessage({
                         to: entry.registeredChannelID,
                         message: `Forum post link: ${responseObj.postURL}`
@@ -217,7 +215,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
 }
 
 
-function registrationHandler(userID, channelIDArg, channelNameToRegister) {
+function registrationHandler(userID, channelIDArg, channelNameToRegister, serverNameOptional) {
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
     let serversOwned = [];
@@ -234,6 +232,17 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister) {
         })
     } else if (serversOwned.length > 1) {
         // Ask for which server they want to register
+        if (serverNameOptional == null) {
+            logger.debug('Multi-server user tried to register without giving a server name')
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `Please run this command again with a server argument: ^register <channel_name> <server_name>`
+            })
+        } else {
+            // do the normal thing here
+            
+        }
+
     } else {
         // Make sure they aren't alredy registered
         if (controller.checkIfServerIsRegistered({ serverID: serversOwned[0].id })) {
@@ -269,4 +278,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister) {
                 })
         }
     }
+}
+
+
+function registerServer() {
+    // Actually register the server from args here!
 }
