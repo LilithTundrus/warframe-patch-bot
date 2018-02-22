@@ -281,22 +281,25 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             let channelIDToRegister = commonLib.getChannelIDByName(channelsToCheck, channelNameToRegister);
             if (channelIDToRegister.length < 1) {
                 logger.debug('Null channelIDToRegister value');
-                bot.sendMessage({
-                    to: channelIDArg,
-                    message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
-                });
+                return wait(1)
+                    .then(() => {
+                        bot.sendMessage({
+                            to: channelIDArg,
+                            message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                        });
+                    })
             } else {
                 // Check permissions on the channel
                 // Send a message to the channel to check and show the help message!
                 console.log(channelIDToRegister);
-                registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name)
+                registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name, channelIDArg)
             }
         }
     }
 }
 
 
-function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID, serverName) {
+function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID, serverName, channelIDArg) {
     // Actually register the server from args here!
     // Check permissions on the channel
     // Send a message to the channel to check and show the help message!
@@ -308,6 +311,9 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
                 to: channelIDArg,
                 message: `Done! This channel should receive update text on the next Warframe update!`
             });
+        })
+        .catch((err) => {
+            logger.error(err);
         })
 }
 
