@@ -225,6 +225,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
 }
 
 // we're going to have to handle those pesky \' and other escaped characters
+// This is getting to be too long
 function registrationHandler(userID, channelIDArg, channelNameToRegister, serverNameOptional) {
     logger.debug(`Registration started by ${userID}`);
     let workingList = bot.getServers();
@@ -239,7 +240,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
         bot.sendMessage({
             to: channelIDArg,
             message: `Sorry, it doesn't seem like you are the owner of any servers`
-        })
+        });
     } else if (serversOwned.length > 1) {
         // Ask for which server they want to register
         if (serverNameOptional == null) {
@@ -247,40 +248,49 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             bot.sendMessage({
                 to: channelIDArg,
                 message: `Since you own multple servers. Please run this command again with a server argument: ^register <channel_name> <server_name>`
-            })
+            });
         } else {
             // do the normal thing here
             // get the server index by matching the passed name
             let serverObjMatched = bot.matchServerByName(serversOwned, serverNameOptional);
-            console.log(serverObjMatched)
+            if (Object.keys(serverObjMatched).length === 0 && serverObjMatched.constructor === Object) {
+                // Send and error message
+                bot.sendMessage({
+                    to: channelIDArg,
+                    message: `Sorry, I can't seem to find a server you own named '${serverNameOptional}'. Make sure your spelling is correct and the server contains no special characters`
+                });
+            } else {
+                // first, make sure this server isn't registered
+
+                // get the match channelID 
+
+                // registerServer(serverObjMatched)
+            }
         }
 
     } else {
-        // Make sure they aren't alredy registered
-        if (controller.checkIfServerIsRegistered({ serverID: serversOwned[0].id })) {
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `It looks like the only server you contain ownership of is already registered: ${serversOwned[0].name}`
-            })
-        }
-        bot.sendMessage({
-            to: channelIDArg,
-            message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
-        })
-        let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
-        // Check the channel's for a name match
-        let channelIDToRegister = commonLib.getChannelIDByName(channelsToCheck, channelNameToRegister);
-        if (channelIDToRegister.length < 1) {
-            logger.debug('Null channelIDToRegister value');
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
-            });
+        if (serverIsRegisteredHandler(serversOwned[0].id, serversOwned[0].name, channelIDArg)) {
+            return;
         } else {
-            // Check permissions on the channel
-            // Send a message to the channel to check and show the help message!
-            console.log(channelIDToRegister);
-            registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name)
+            bot.sendMessage({
+                to: channelIDArg,
+                message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
+            });
+            let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
+            // Check the channel's for a name match
+            let channelIDToRegister = commonLib.getChannelIDByName(channelsToCheck, channelNameToRegister);
+            if (channelIDToRegister.length < 1) {
+                logger.debug('Null channelIDToRegister value');
+                bot.sendMessage({
+                    to: channelIDArg,
+                    message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                });
+            } else {
+                // Check permissions on the channel
+                // Send a message to the channel to check and show the help message!
+                console.log(channelIDToRegister);
+                registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name)
+            }
         }
     }
 }
@@ -299,4 +309,18 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
                 message: `Done! This channel should receive update text on the next Warframe update!`
             });
         })
+}
+
+function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
+    // Make sure the server is not alredy registered
+    if (controller.checkIfServerIsRegistered({ serverID: serverID })) {
+        bot.sendMessage({
+            to: channelIDArg,
+            message: `It looks like the server you contain ownership of is already registered: ${serverName}`
+        })
+        return true;
+    } else {
+        logger.debug(`Server ${serverName} is NOT registered`);
+        return false;
+    }
 }
