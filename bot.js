@@ -318,6 +318,17 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
     // Check permissions on the channel
     // Send a message to the channel to check and show the help message!
     console.log(channelIDToRegister);
+
+    bot.sendMessage({
+        to: channelIDToRegister,
+        message: `This is a permissions test to ensure I have access to this channel`
+    }, function (err, response) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(response);
+        }
+    })
     controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
     return wait(1)
         .then(() => {
