@@ -260,14 +260,32 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                     message: `Sorry, I can't seem to find a server you own named '${serverNameOptional}'. Make sure your spelling is correct and the server contains no special characters`
                 });
             } else {
-                // first, make sure this server isn't registered
+                if (serverIsRegisteredHandler(serverObjMatched.id, serverObjMatched.name, channelIDArg)) {
+                    return;
+                } else {
+                    //  check for the channel
+                    let channelsToCheck = bot.getServerChannelsByID(serverObjMatched.id);
+                    let channelIDToRegister = commonLib.getChannelIDByName(channelsToCheck, channelNameToRegister);
+                    if (channelIDToRegister.length < 1) {
+                        logger.debug('Null channelIDToRegister value');
+                        return wait(1)
+                            .then(() => {
+                                bot.sendMessage({
+                                    to: channelIDArg,
+                                    message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                                });
+                            })
+                    } else {
+                        console.log(channelIDToRegister);
+                        registerServer(serverObjMatched.id, channelIDToRegister, '^', serverObjMatched.owner_id, serverObjMatched.name, channelIDArg)
+                    }
 
-                // get the match channelID 
+                    // get the match channelID 
 
-                // registerServer(serverObjMatched)
+                    // registerServer(serverObjMatched)
+                }
             }
         }
-
     } else {
         if (serverIsRegisteredHandler(serversOwned[0].id, serversOwned[0].name, channelIDArg)) {
             return;
@@ -292,7 +310,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                 // Check permissions on the channel
                 // Send a message to the channel to check and show the help message!
                 console.log(channelIDToRegister);
-                registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name, channelIDArg)
+                registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name, channelIDArg);
             }
         }
     }
