@@ -22,10 +22,17 @@ data is stored in a basic, flat JSON file.
 
 ## Adding this bot to your server
 
-**Placeholder**
+You can use [This link](https://discordapp.com/oauth2/authorize?client_id=413536424508391426&scope=bot&permissions=347200)
 
 
 ## History
+
+- **Alpha 0.0.5**
+    - Registration functionality is done besides adding custom bot call characters
+    - Registration process supports admins with multiple servers owned
+    - Storage Controller code is fully implemented (for now)
+    - Bot functionality has been simplified
+
 
 - **Alpha 0.0.2**
     - Registration code partially implemented (No multi-server owner support yet, no error handling yet)
