@@ -246,9 +246,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
     });
     if (serversOwned.length < 1) {
         // send an error message
-        bot.sendMessage({
-            to: channelIDArg,
-            message: `Sorry, it doesn't seem like you are the owner of any servers`
+        bot.sendErrMessage({
+            channelID: channelIDArg,
+            errorMessage: `Sorry, it doesn't seem like you are the owner of any servers`
         });
     } else if (serversOwned.length > 1) {
         // Ask for which server they want to register
@@ -263,9 +263,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             let serverObjMatched = bot.matchServerByName(serversOwned, serverNameOptional);
             if (Object.keys(serverObjMatched).length === 0 && serverObjMatched.constructor === Object) {
                 // Send and error message
-                bot.sendMessage({
-                    to: channelIDArg,
-                    message: `Sorry, I can't seem to find a server you own named '${serverNameOptional}'. Make sure your spelling is correct and the server contains no special characters`
+                bot.sendErrMessage({
+                    channelID: channelIDArg,
+                    errorMessage: `Sorry, I can't seem to find a server you own named '${serverNameOptional}'. Make sure your spelling is correct and the server contains no special characters`
                 });
             } else {
                 if (serverIsRegisteredHandler(serverObjMatched.id, serverObjMatched.name, channelIDArg)) {
@@ -278,9 +278,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                         logger.debug('Null channelIDToRegister value');
                         return wait(1)
                             .then(() => {
-                                bot.sendMessage({
-                                    to: channelIDArg,
-                                    message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                                bot.sendErrMessage({
+                                    channelID: channelIDArg,
+                                    errorMessage: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
                                 });
                             })
                     } else {
@@ -304,9 +304,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                 logger.debug('Null channelIDToRegister value');
                 return wait(1)
                     .then(() => {
-                        bot.sendMessage({
-                            to: channelIDArg,
-                            message: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                        bot.sendErrMessage({
+                            channelID: channelIDArg,
+                            errorMessage: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
                         });
                     })
             } else {
@@ -326,9 +326,9 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
     }, function (err, response) {
         if (err) {
             logger.error(err);
-            return bot.sendMessage({
-                to: channelIDArg,
-                message: `Permissions message check failed to send, make sure you've set permissions correctly on the channel`
+            return bot.sendErrMessage({
+                channelID: channelIDArg,
+                errorMessage: `Permissions message check failed to send, make sure you've set permissions correctly on the channel`
             });
         } else {
             controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
