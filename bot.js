@@ -90,11 +90,12 @@ bot.on('guildCreate', function (server) {
     } else {
         logger.warn(`Server ${server.name} is NOT registered`);
         // Display the intro message here (THIS NEEDS TO BE UPDATED)
-        let embed = new dsTemplates.baseEmbedTemplate({ title: 'Welcome', description: `Hi! It seems that you or another admin on your server '**${server.name}**' has added me.\n\nPlease use the register command (^register) to get started.` });
+        let embed = new dsTemplates.baseEmbedTemplate({ title: 'Welcome', description: `Hello! It seems that you or another admin on your server '**${server.name}**' has added me.\n\nPlease use the **^register** command to receive updates for Warframe when they are posted` });
         bot.sendMessage({
             to: server.owner_id,
             message: '',
-            embed: embed
+            embed: embed,
+            typing: true
         });
     }
 });
