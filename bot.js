@@ -314,32 +314,35 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
 
 
 function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID, serverName, channelIDArg) {
-    // Actually register the server from args here!
+    //  Register the server from args
+    logger.auth(`Attempting to register ${serverName} on channel ${channelIDToRegister}`);
+    // This should just send the intro/help message
     // Check permissions on the channel
-    // Send a message to the channel to check and show the help message!
-    console.log(channelIDToRegister);
-
     bot.sendMessage({
         to: channelIDToRegister,
         message: `This is a permissions test to ensure I have access to this channel`
     }, function (err, response) {
         if (err) {
             console.log(err);
+            return bot.sendMessage({
+                to: channelIDArg,
+                message: `Permissions message check failed to send, make sure you've set permissions correctly on the channel`
+            });
         } else {
-            console.log(response);
+            controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
+            return wait(1)
+                .then(() => {
+                    bot.sendMessage({
+                        to: channelIDArg,
+                        message: `Done! This channel should receive update text on the next Warframe update!`
+                    });
+                })
+                .catch((err) => {
+                    logger.error(err);
+                })
         }
     })
-    controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
-    return wait(1)
-        .then(() => {
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `Done! This channel should receive update text on the next Warframe update!`
-            });
-        })
-        .catch((err) => {
-            logger.error(err);
-        })
+
 }
 
 function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
