@@ -15,7 +15,6 @@ let controller = require('./lib/storageController');
 - Server-unique command character support (! vs. ^/~/etc.)
 - Registered server data integrity check (and periodic backups)
 - Make messages an embed! (They're pretty)
-- Channel permissions check
 - General performance improvements
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
@@ -82,23 +81,23 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 // When the bot 'joins' a server, this also happens on bot restart so that sucks
 bot.on('guildCreate', function (server) {
-    console.log(server)
-    // Check if this server is in the registeredServers JSON. If not, add it
+    logger.auth(`Joined server named ${server.name} with ${server.member_count} members`)
+    // Check if this server is in the registeredServers JSON. If not, send a message
     if (controller.checkIfServerIsRegistered({ serverID: server.id }) == true) {
         // We don't need to do anything
-        logger.debug(`Server ${server.id} is already registered`);
+        logger.info(`Server ${server.name} is already registered`);
     } else {
-        console.log(`Server ${server.id} is NOT registered`);
+        logger.warn(`Server ${server.name} is NOT registered`);
         // Display the intro message here (THIS NEEDS TO BE UPDATED)
         bot.sendMessage({
             to: server.owner_id,
             message: `Hi! It seems that you or another admin on your server ${server.name} has added me.\n\nPlease use the register command (^register) to get started.`
-        })
+        });
     }
 });
 
 bot.on('guildDelete', function (server) {
-    logger.warn(`Left server with ID ${server.id}`);
+    logger.auth(`Left server with ID ${server.id} (${server.name})`);
     // Unregister the server
     controller.unregisterServer({ serverID: server.id });
 })
@@ -152,7 +151,7 @@ function checkForUpdates() {
                 let serverQueue = controller.readServerFile();
                 // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
-                    logger.debug(`Notifying server with ID ${entry.serverID}`);
+                    logger.info(`Notifying server with ID ${entry.serverID}`);
                     bot.sendMessage({
                         to: entry.registeredChannelID,
                         message: `Forum post link: ${responseObj.postURL}`
@@ -160,7 +159,7 @@ function checkForUpdates() {
                     return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage);
                 })
             } else {
-                logger.debug('No Updates...');
+                logger.info('No Updates...');
             }
         })
         .catch((err) => {
@@ -192,6 +191,7 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown) {
     } else {
         logger.debug('Message is over 2,000 characters, setting up paging process...');
         let chunkedMessage = commonLib.createTextChunksArrayByNewline(forumPostMarkdown);
+        logger.info(`Starting recursive update message function at ${Date.now()}`)
         return createForumPostMessageTail(channelIDArg, 0, chunkedMessage);
     }
 }
@@ -223,7 +223,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
 
 // This is getting to be too long
 function registrationHandler(userID, channelIDArg, channelNameToRegister, serverNameOptional) {
-    logger.debug(`Registration started by ${userID}`);
+    logger.auth(`Registration started by ${userID}`);
     let workingList = bot.getServers();
     let serversOwned = [];
     workingList.forEach((serverObj, index) => {
@@ -240,13 +240,12 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
     } else if (serversOwned.length > 1) {
         // Ask for which server they want to register
         if (serverNameOptional == null) {
-            logger.debug('Multi-server user tried to register without giving a server name')
+            logger.warn(`Multi-server user with ID ${userID} tried to register without giving a server name`);
             bot.sendMessage({
                 to: channelIDArg,
                 message: `Since you own multple servers. Please run this command again with a server argument: ^register <channel_name> <server_name>`
             });
         } else {
-            // do the normal thing here
             // get the server index by matching the passed name
             let serverObjMatched = bot.matchServerByName(serversOwned, serverNameOptional);
             if (Object.keys(serverObjMatched).length === 0 && serverObjMatched.constructor === Object) {
@@ -272,13 +271,8 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                                 });
                             })
                     } else {
-                        console.log(channelIDToRegister);
                         registerServer(serverObjMatched.id, channelIDToRegister, '^', serverObjMatched.owner_id, serverObjMatched.name, channelIDArg)
                     }
-
-                    // get the match channelID 
-
-                    // registerServer(serverObjMatched)
                 }
             }
         }
@@ -303,18 +297,13 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                         });
                     })
             } else {
-                // Check permissions on the channel
-                // Send a message to the channel to check and show the help message!
-                console.log(channelIDToRegister);
                 registerServer(serversOwned[0].id, channelIDToRegister, '^', serversOwned[0].owner_id, serversOwned[0].name, channelIDArg);
             }
         }
     }
 }
 
-
 function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID, serverName, channelIDArg) {
-    //  Register the server from args
     logger.auth(`Attempting to register ${serverName} on channel ${channelIDToRegister}`);
     // This should just send the intro/help message
     // Check permissions on the channel
@@ -323,7 +312,7 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
         message: `This is a permissions test to ensure I have access to this channel`
     }, function (err, response) {
         if (err) {
-            console.log(err);
+            logger.error(err);
             return bot.sendMessage({
                 to: channelIDArg,
                 message: `Permissions message check failed to send, make sure you've set permissions correctly on the channel`
