@@ -90,9 +90,11 @@ bot.on('guildCreate', function (server) {
     } else {
         logger.warn(`Server ${server.name} is NOT registered`);
         // Display the intro message here (THIS NEEDS TO BE UPDATED)
+        let embed = new dsTemplates.baseEmbedTemplate({ title: 'Welcome', description: `Hi! It seems that you or another admin on your server '**${server.name}**' has added me.\n\nPlease use the register command (^register) to get started.` });
         bot.sendMessage({
             to: server.owner_id,
-            message: `Hi! It seems that you or another admin on your server ${server.name} has added me.\n\nPlease use the register command (^register) to get started.`
+            message: '',
+            embed: embed
         });
     }
 });
