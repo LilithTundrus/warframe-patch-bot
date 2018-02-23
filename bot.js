@@ -6,6 +6,7 @@ let fs = require('fs');
 let os = require('os');                                             // os info lib built into node
 let Logger = require('./lib/loggerClass');                          // Custom (basic) logger solution
 let scraper = require('./lib/scraper');
+let dsTemplates = require('./lib/discord-templates');
 const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
@@ -132,6 +133,18 @@ bot.matchServerByName = function (serverArray, nameToMatch) {
         }
     }
     return serverObj;
+}
+
+bot.sendErrMessage = function ({ channelID, errorMessage }) {
+    // construct the embeds
+    let errorTemplate = new dsTemplates.erroMessageEmbedTemplate({
+        description: errorMessage
+    })
+    this.sendMessage({
+        to: channelID,
+        message: '',
+        embed: errorTemplate
+    });
 }
 
 bot.initScheduler = function () {
@@ -337,9 +350,9 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
 function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
     // Make sure the server is not alredy registered
     if (controller.checkIfServerIsRegistered({ serverID: serverID })) {
-        bot.sendMessage({
-            to: channelIDArg,
-            message: `It looks like the server you contain ownership of is already registered: ${serverName}`
+        bot.sendErrMessage({
+            channelID: channelIDArg,
+            errorMessage: `It looks like the server you contain ownership of is already registered: ${serverName}`
         });
         return true;
     } else {
