@@ -332,7 +332,7 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
     // Check permissions on the channel
     bot.sendInfoMessage({
         channelID: channelIDToRegister,
-        infoMessage: `This is a permissions test to ensure I have access to this channel`
+        infoMessage: `This is a permissions test to ensure I have access to this channel.\n\nIf you'd like to know more, use the ^help command`
     }, function (err, response) {
         if (err) {
             logger.error(err);
@@ -373,12 +373,13 @@ function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
 
 function helpHandler(channelIDArg) {
     // Construct the help message from file
-    let helpEmbed = new dsTemplates.baseEmbedTemplate({title: 'Help/Info'})
+    let helpMsg = fs.readFileSync('./helpNotes.txt');
+    let helpEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Help & Info' });
     helpEmbed.author = {
-        name: 'Waframe Patch bot',
-        icon_url: ''
-    }
-    helpEmbed.description = 'test'
+        name: `Waframe Patch bot v${ver}`,
+        icon_url: 'http://store-images.s-microsoft.com/image/apps.6898.13510798882949700.e37ba52d-3f01-4d8a-b1c2-16eaeb35dd26.673a8aef-410d-4801-b7e4-fd61a5522abd'
+    };
+    helpEmbed.description = `**Available commands:** \n\n${helpMsg.toString()}`;
     bot.sendMessage({
         to: channelIDArg,
         message: '',

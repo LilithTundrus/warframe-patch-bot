@@ -1,0 +1,22 @@
+For additional help visit [here](https://github.com/LilithTundrus/warframe-patch-bot)
+
+
+Note: Don't Include brackets in the commands!
+
+
+**^about**
+
+Display information about the bot
+
+
+**^help**
+
+Show this help message
+
+
+**^register**
+
+Register this bot with a channel you own (Required to receive updates)
+
+
+More to come in the future!!
