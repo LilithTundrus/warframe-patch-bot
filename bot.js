@@ -53,10 +53,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         switch (cmd) {                                              // bot needs to know if it will execute a command
             // Eventually write up a helpfile
             case 'help':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'PlaceHolder'
-                });
+                return helpHandler(channelID);
                 break;
             // Eventually format this to be pretty and show a LOT more stats
             // about the bot and what it's for
@@ -372,4 +369,18 @@ function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
         logger.debug(`Server ${serverName} is NOT registered`);
         return false;
     }
+}
+
+function helpHandler(channelIDArg) {
+    // Construct the help message from file
+    let helpEmbed = new dsTemplates.baseEmbedTemplate({title: 'Help/Info'})
+    helpEmbed.author = {
+        name: 'ADAAAAA'
+    }
+    helpEmbed.description = 'test'
+    bot.sendMessage({
+        to: channelIDArg,
+        message: '',
+        embed: helpEmbed
+    });
 }
