@@ -375,7 +375,8 @@ function helpHandler(channelIDArg) {
     // Construct the help message from file
     let helpEmbed = new dsTemplates.baseEmbedTemplate({title: 'Help/Info'})
     helpEmbed.author = {
-        name: 'ADAAAAA'
+        name: 'Waframe Patch bot',
+        icon_url: ''
     }
     helpEmbed.description = 'test'
     bot.sendMessage({
