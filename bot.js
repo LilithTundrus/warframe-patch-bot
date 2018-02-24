@@ -68,9 +68,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 break;
             case 'register':
                 if (args[0] == undefined) {
-                    bot.sendMessage({
-                        to: channelID,
-                        message: `Please give a channel name you want me to send messages to!\n\nExample: ^register announcements`
+                    bot.sendErrMessage({
+                        channelID: channelID,
+                        errorMessage: `Please give a channel name you want me to send messages to!\n\nExample: **^register announcements**`,
                     });
                 } else {
                     return registrationHandler(userID, channelID, args[0], args[1]);
@@ -139,14 +139,25 @@ bot.matchServerByName = function (serverArray, nameToMatch) {
 }
 
 bot.sendErrMessage = function ({ channelID, errorMessage }) {
-    // construct the embeds
-    let errorTemplate = new dsTemplates.erroMessageEmbedTemplate({
+    let errorTemplate = new dsTemplates.errorMessageEmbedTemplate({
         description: errorMessage
     })
     this.sendMessage({
         to: channelID,
         message: '',
         embed: errorTemplate
+    });
+}
+
+bot.sendInfoMessage = function ({ channelID, infoMessage }) {
+    let messageTemplate = new dsTemplates.baseEmbedTemplate({
+        title: 'Info',
+        description: infoMessage
+    })
+    this.sendMessage({
+        to: channelID,
+        message: '',
+        embed: messageTemplate
     });
 }
 
@@ -248,8 +259,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
         }
     });
     if (serversOwned.length < 1) {
-        // send an error message
-        bot.sendErrMessage({
+        return bot.sendErrMessage({
             channelID: channelIDArg,
             errorMessage: `Sorry, it doesn't seem like you are the owner of any servers`
         });
@@ -257,9 +267,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
         // Ask for which server they want to register
         if (serverNameOptional == null) {
             logger.warn(`Multi-server user with ID ${userID} tried to register without giving a server name`);
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `Since you own multple servers. Please run this command again with a server argument: ^register <channel_name> <server_name>`
+            bot.sendErrMessage({
+                channelID: channelIDArg,
+                errorMessage: `Since you own multple servers. Please run this command again with a server argument: **^register channel_name server_name**`
             });
         } else {
             // get the server index by matching the passed name
@@ -268,7 +278,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                 // Send and error message
                 bot.sendErrMessage({
                     channelID: channelIDArg,
-                    errorMessage: `Sorry, I can't seem to find a server you own named '${serverNameOptional}'. Make sure your spelling is correct and the server contains no special characters`
+                    errorMessage: `Sorry, I can't seem to find a server you own named **${serverNameOptional}**. Make sure your spelling is correct and the server contains no special characters`
                 });
             } else {
                 if (serverIsRegisteredHandler(serverObjMatched.id, serverObjMatched.name, channelIDArg)) {
@@ -283,7 +293,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                             .then(() => {
                                 bot.sendErrMessage({
                                     channelID: channelIDArg,
-                                    errorMessage: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                                    errorMessage: `Looks like I couldn't find a channel titled **${channelNameToRegister}**, make sure you use the lowercase (official) name of the channel.`
                                 });
                             })
                     } else {
@@ -296,9 +306,9 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
         if (serverIsRegisteredHandler(serversOwned[0].id, serversOwned[0].name, channelIDArg)) {
             return;
         } else {
-            bot.sendMessage({
-                to: channelIDArg,
-                message: `It looks like you are the owner of 1 server. Attempting to register ${serversOwned[0].name} on channel ${channelNameToRegister}...`
+            bot.sendInfoMessage({
+                channelID: channelIDArg,
+                infoMessage: `It looks like you are the owner of 1 server. Attempting to register **${serversOwned[0].name}** on channel **${channelNameToRegister}**...`
             });
             let channelsToCheck = bot.getServerChannelsByID(serversOwned[0].id);
             // Check the channel's for a name match
@@ -309,7 +319,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
                     .then(() => {
                         bot.sendErrMessage({
                             channelID: channelIDArg,
-                            errorMessage: `Looks like I couldn't find a channel titled ${channelNameToRegister}, make sure you use the lowercase (official) name of the channel.`
+                            errorMessage: `Looks like I couldn't find a channel titled **${channelNameToRegister}**, make sure you use the lowercase (official) name of the channel.`
                         });
                     })
             } else {
@@ -323,9 +333,9 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
     logger.auth(`Attempting to register ${serverName} on channel ${channelIDToRegister}`);
     // This should just send the intro/help message
     // Check permissions on the channel
-    bot.sendMessage({
-        to: channelIDToRegister,
-        message: `This is a permissions test to ensure I have access to this channel`
+    bot.sendInfoMessage({
+        channelID: channelIDToRegister,
+        infoMessage: `This is a permissions test to ensure I have access to this channel`
     }, function (err, response) {
         if (err) {
             logger.error(err);
@@ -337,9 +347,9 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
             controller.registerServer({ serverID: serverID, registeredChannelID: channelIDToRegister, commandCharacter: commandCharacter, ownerID: ownerID, name: serverName });
             return wait(1)
                 .then(() => {
-                    bot.sendMessage({
-                        to: channelIDArg,
-                        message: `Done! This channel should receive update text on the next Warframe update!`
+                    bot.sendInfoMessage({
+                        channelID: channelIDArg,
+                        infoMessage: `Done! This channel should receive update text on the next Warframe update!`
                     });
                 })
                 .catch((err) => {
@@ -355,7 +365,7 @@ function serverIsRegisteredHandler(serverID, serverName, channelIDArg) {
     if (controller.checkIfServerIsRegistered({ serverID: serverID })) {
         bot.sendErrMessage({
             channelID: channelIDArg,
-            errorMessage: `It looks like the server you contain ownership of is already registered: ${serverName}`
+            errorMessage: `It looks like the server you contain ownership of is already registered: **${serverName}**`
         });
         return true;
     } else {
