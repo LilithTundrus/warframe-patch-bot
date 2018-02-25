@@ -13,10 +13,8 @@ let controller = require('./lib/storageController');
 /* Parts of the bot that we need to get working:
 - Discord bot sharding
 - Server-unique command character support (! vs. ^/~/etc.)
-- Registered server data integrity check (and periodic backups)
 - General performance improvements
 - A way for the on 'message' event to get the server's custom command character
-- Create a data backup system for our main registeredServers.json
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -87,7 +85,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 bot.on('guildCreate', function (server) {
     logger.auth(`Joined server named ${server.name} with ${server.member_count} members`)
     // Check if this server is in the registeredServers JSON. If not, send a message
-    if (controller.checkIfServerIsRegistered({ serverID: server.id }) == true) {
+    if (controller.checkIfServerIsRegistered({ serverID: server.id })) {
         // We don't need to do anything
         logger.info(`Server ${server.name} is already registered`);
     } else {
