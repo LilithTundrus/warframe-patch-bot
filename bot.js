@@ -23,6 +23,11 @@ let bot = new Discord.Client({                                      // Initializ
     autorun: true
 });
 
+bot.initScheduler = function () {
+    setInterval(checkForUpdates, 5 * 60 * 1000);
+    logger.info('Initialized Warframe update check scheduler');
+}
+
 logger.debug('Attempting to connect to Discord...');
 bot.on('ready', function (evt) {                                    // do some logging and start ensure bot is running
     logger.info('Connected to Discord', `Logged in as: ${bot.username} ID: (${bot.id})`);
@@ -30,6 +35,7 @@ bot.on('ready', function (evt) {                                    // do some l
         idle_since: null,
         game: { name: 'Debug mode' }
     });
+    bot.initScheduler();
 });
 
 bot.on('disconnect', function (evt) {
@@ -148,13 +154,6 @@ bot.sendInfoMessage = function ({ channelID, infoMessage }) {
     });
 }
 
-bot.initScheduler = function () {
-    setInterval(checkForUpdates, 5 * 60 * 1000);
-    logger.info('Initialized Warframe update check scheduler');
-}
-
-bot.initScheduler();
-
 function checkForUpdates() {
     return scraper.retrieveUpdates()
         .then((responseObj) => {
@@ -165,6 +164,7 @@ function checkForUpdates() {
                 let serverQueue = controller.readServerFile();
                 // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
+                    // Add an icon here!
                     logger.info(`Notifying server with ID ${entry.serverID}`);
                     let updateEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Warframe Update', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
                     bot.sendMessage({
