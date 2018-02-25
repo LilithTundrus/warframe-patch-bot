@@ -3,3 +3,4 @@ config.js
 **.log
 registeredServers.json
 topicCount.json
+backups/**
