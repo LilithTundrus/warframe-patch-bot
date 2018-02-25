@@ -1,8 +1,6 @@
 For additional help visit [here](https://github.com/LilithTundrus/warframe-patch-bot)
 
-
 Note: Don't Include brackets in the commands!
-
 
 **^about**
 
@@ -14,9 +12,12 @@ Display information about the bot
 Show this help message
 
 
-**^register**
+**^register <channel_name> <server_name>**
 
 Register this bot with a channel you own (Required to receive updates)
+
+If you only own one server, **<server_name>** is not required
+
 
 
 More to come in the future!!

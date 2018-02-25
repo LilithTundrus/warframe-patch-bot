@@ -12,11 +12,10 @@ let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 /* Parts of the bot that we need to get working:
 - Discord bot sharding
-- Server messaging system on a warframe update (we kind of have one)
 - Server-unique command character support (! vs. ^/~/etc.)
 - Registered server data integrity check (and periodic backups)
-- Make messages an embed! (They're pretty)
 - General performance improvements
+- A way for the on 'message' event to get the server's custom command character
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -254,7 +253,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
         // Ask for which server they want to register
         if (serverNameOptional == null) {
             logger.warn(`Multi-server user with ID ${userID} tried to register without giving a server name`);
-            bot.sendErrMessage({
+            return bot.sendErrMessage({
                 channelID: channelIDArg,
                 errorMessage: `Since you own multple servers. Please run this command again with a server argument: **^register channel_name server_name**`
             });
@@ -262,7 +261,6 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             // get the server index by matching the passed name
             let serverObjMatched = commonLib.matchServerByName(serversOwned, serverNameOptional);
             if (Object.keys(serverObjMatched).length === 0 && serverObjMatched.constructor === Object) {
-                // Send and error message
                 bot.sendErrMessage({
                     channelID: channelIDArg,
                     errorMessage: `Sorry, I can't seem to find a server you own named **${serverNameOptional}**. Make sure your spelling is correct and the server contains no special characters`
