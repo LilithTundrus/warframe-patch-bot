@@ -125,16 +125,6 @@ bot.getServerChannelsByID = function (serverID) {
     return channelArray;
 }
 
-bot.matchServerByName = function (serverArray, nameToMatch) {
-    let serverObj = {};
-    for (let server of serverArray) {
-        if (server.name.toLowerCase() == nameToMatch.toLowerCase()) {
-            serverObj = Object.assign({}, server)
-        }
-    }
-    return serverObj;
-}
-
 bot.sendErrMessage = function ({ channelID, errorMessage }) {
     let errorTemplate = new dsTemplates.errorMessageEmbedTemplate({
         description: errorMessage
@@ -270,7 +260,7 @@ function registrationHandler(userID, channelIDArg, channelNameToRegister, server
             });
         } else {
             // get the server index by matching the passed name
-            let serverObjMatched = bot.matchServerByName(serversOwned, serverNameOptional);
+            let serverObjMatched = commonLib.matchServerByName(serversOwned, serverNameOptional);
             if (Object.keys(serverObjMatched).length === 0 && serverObjMatched.constructor === Object) {
                 // Send and error message
                 bot.sendErrMessage({
