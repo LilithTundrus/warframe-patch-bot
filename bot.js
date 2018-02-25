@@ -16,6 +16,7 @@ let controller = require('./lib/storageController');
 - Registered server data integrity check (and periodic backups)
 - General performance improvements
 - A way for the on 'message' event to get the server's custom command character
+- Create a data backup system for our main registeredServers.json
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
@@ -165,7 +166,7 @@ function checkForUpdates() {
                 // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
                     logger.info(`Notifying server with ID ${entry.serverID}`);
-                    let updateEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Update Link', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
+                    let updateEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Warframe Update', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
                     bot.sendMessage({
                         to: entry.registeredChannelID,
                         message: '',
