@@ -165,9 +165,11 @@ function checkForUpdates() {
                 // This is probably fine... could be unsafe in the future
                 serverQueue.forEach((entry, index) => {
                     logger.info(`Notifying server with ID ${entry.serverID}`);
+                    let updateEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Update Link', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
                     bot.sendMessage({
                         to: entry.registeredChannelID,
-                        message: `Forum post link: ${responseObj.postURL}`
+                        message: '',
+                        embed: updateEmbed
                     });
                     return constructWarframeUpdateMessageQueue(entry.registeredChannelID, responseObj.formattedMessage);
                 })
