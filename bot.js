@@ -47,11 +47,16 @@ bot.on('disconnect', function (evt) {
 
 bot.on('message', function (user, userID, channelID, message, evt) {
     // check for channel ID in list of servers
-    if (controller.checkIfServerIsRegisteredByChannelID({ channelID })) {
-        console.log('beh');
-        return main(user, userID, channelID, message, evt);
+    if (controller.checkIfServerIsRegisteredByChannelID({ channelID: channelID })) {
+        // get the channel's hot-symbol
+        let serverData = controller.getServerDataByChannelID({ channelID: channelID });
+        if (message.substring(0, 1) == serverData.commandCharacter) {
+            logger.debug(`Message contains the correct symbol, responding`);
+            return main(user, userID, channelID, message, evt);
+        }
     }
-    else if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
+    else if (message.substring(0, 1) == config.commandCharDefault && controller.checkIfServerIsRegisteredByChannelID({ channelID }) == false) {
+        console.log('no beh');
         return main(user, userID, channelID, message, evt);
     }
 });
@@ -397,6 +402,9 @@ function helpHandler(channelIDArg) {
 
 function changeSymbolHandler(channelIDArg, symbolToUpdate) {
     // Check user permissions on the server, they must be the owner
-
-    controller.changeServerCommandChar({ channelID: channelIDArg, newCharacter: symbolToUpdate })
+    controller.changeServerCommandChar({ channelID: channelIDArg, newCharacter: symbolToUpdate });
+    bot.sendInfoMessage({
+        channelID: channelIDArg,
+        infoMessage: `Done! Defualt hot-character for this channel set to ${symbolToUpdate}`
+    });
 }
