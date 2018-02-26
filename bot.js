@@ -47,9 +47,11 @@ bot.on('disconnect', function (evt) {
 
 bot.on('message', function (user, userID, channelID, message, evt) {
     // check for channel ID in list of servers
-    if (controller.checkIfServerIsRegisteredByChannelID({ channelID: channelID })) {
+    let serverFromChannelID = this.resolveServerIDByChannelID(channelID);
+    if (controller.checkIfServerIsRegistered({ serverID: serverFromChannelID })) {
+        console.log('BEH')
         // get the channel's hot-symbol
-        let serverData = controller.getServerDataByChannelID({ channelID: channelID });
+        let serverData = controller.getServerDataByServerID({ serverID: serverFromChannelID });
         if (message.substring(0, 1) == serverData.commandCharacter) {
             logger.debug(`Message contains the correct symbol, responding`);
             return main(user, userID, channelID, message, evt);
@@ -130,6 +132,21 @@ bot.sendInfoMessage = function ({ channelID, infoMessage }) {
     });
 }
 
+bot.resolveServerIDByChannelID = function (channelID) {
+    // Check what server a channel belongs to
+    let serverList = this.getServers();
+    let serverID = '';
+    for (let server of serverList) {
+        // check for the channel
+        Object.keys(server.channels).forEach(function (key) {
+            if (server.channels[key].id == channelID) {
+                serverID = server.id;
+            }
+        })
+    }
+    return serverID;
+}
+
 function main(user, userID, channelID, message, evt) {
     let args = message.substring(1).split(' ');
     let cmd = args[0];
@@ -170,7 +187,7 @@ function main(user, userID, channelID, message, evt) {
                     errorMessage: `You must us a character that is not a number or letter.`,
                 });
             } else {
-                if(userID !== controller.getServerDataByChannelID({channelID: channelID}).ownerID) {
+                if (userID !== controller.getServerDataByChannelID({ channelID: channelID }).ownerID) {
                     bot.sendErrMessage({
                         channelID: channelID,
                         errorMessage: `Sorry. You are not the owner of this server`,
