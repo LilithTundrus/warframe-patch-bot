@@ -27,6 +27,11 @@ You can use [This link](https://discordapp.com/oauth2/authorize?client_id=413536
 
 ## History
 
+- **Alpha 0.0.9**
+    - In the most jank way possible, custom characters for the bot activation is now per-server
+    - Improved storageController.js code
+    - General improvments but also introduced a lot of jank
+
 - **Alpha 0.0.5**
     - Registration functionality is done besides adding custom bot call characters
     - Registration process supports admins with multiple servers owned

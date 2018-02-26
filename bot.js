@@ -10,10 +10,6 @@ let dsTemplates = require('./lib/discord-templates');
 const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
-/* Parts of the bot that we need to get working:
-- Server-unique command character support (! vs. ^/~/etc.)
-- A way for the on 'message' event to get the server's custom command character
-*/
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
     autorun: true
@@ -49,7 +45,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
     // check for channel ID in list of servers
     let serverFromChannelID = this.resolveServerIDByChannelID(channelID);
     if (controller.checkIfServerIsRegistered({ serverID: serverFromChannelID })) {
-        console.log('BEH')
         // get the channel's hot-symbol
         let serverData = controller.getServerDataByServerID({ serverID: serverFromChannelID });
         if (message.substring(0, 1) == serverData.commandCharacter) {
@@ -57,8 +52,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             return main(user, userID, channelID, message, evt);
         }
     }
+    // server is not registered, use default symbol
     else if (message.substring(0, 1) == config.commandCharDefault && controller.checkIfServerIsRegisteredByChannelID({ channelID }) == false) {
-        console.log('no beh');
         return main(user, userID, channelID, message, evt);
     }
 });
@@ -91,7 +86,7 @@ bot.getServers = function () {
     let serversArray = [];
     Object.keys(this.servers).forEach(function (key) {
         return serversArray.push(bot.servers[key]);
-    })
+    });
     return serversArray;
 }
 
@@ -103,16 +98,14 @@ bot.getServerChannelsByID = function (serverID) {
             // check for the channel
             Object.keys(server.channels).forEach(function (key) {
                 channelArray.push(server.channels[key]);
-            })
+            });
         }
     }
     return channelArray;
 }
 
 bot.sendErrMessage = function ({ channelID, errorMessage }) {
-    let errorTemplate = new dsTemplates.errorMessageEmbedTemplate({
-        description: errorMessage
-    })
+    let errorTemplate = new dsTemplates.errorMessageEmbedTemplate({ description: errorMessage });
     this.sendMessage({
         to: channelID,
         message: '',
@@ -124,7 +117,7 @@ bot.sendInfoMessage = function ({ channelID, infoMessage }) {
     let messageTemplate = new dsTemplates.baseEmbedTemplate({
         title: 'Info',
         description: infoMessage
-    })
+    });
     this.sendMessage({
         to: channelID,
         message: '',
@@ -137,12 +130,11 @@ bot.resolveServerIDByChannelID = function (channelID) {
     let serverList = this.getServers();
     let serverID = '';
     for (let server of serverList) {
-        // check for the channel
         Object.keys(server.channels).forEach(function (key) {
             if (server.channels[key].id == channelID) {
                 serverID = server.id;
             }
-        })
+        });
     }
     return serverID;
 }
