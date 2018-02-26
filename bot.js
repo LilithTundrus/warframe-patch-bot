@@ -170,7 +170,14 @@ function main(user, userID, channelID, message, evt) {
                     errorMessage: `You must us a character that is not a number or letter.`,
                 });
             } else {
-                return changeSymbolHandler(channelID, args[0]);
+                if(userID !== controller.getServerDataByChannelID({channelID: channelID}).ownerID) {
+                    bot.sendErrMessage({
+                        channelID: channelID,
+                        errorMessage: `Sorry. You are not the owner of this server`,
+                    });
+                } else {
+                    return changeSymbolHandler(channelID, args[0]);
+                }
             }
             break;
     }
