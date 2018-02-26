@@ -11,9 +11,7 @@ const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 /* Parts of the bot that we need to get working:
-- Discord bot sharding
 - Server-unique command character support (! vs. ^/~/etc.)
-- General performance improvements
 - A way for the on 'message' event to get the server's custom command character
 */
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
@@ -48,36 +46,13 @@ bot.on('disconnect', function (evt) {
 });
 
 bot.on('message', function (user, userID, channelID, message, evt) {
-    if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
-        let args = message.substring(1).split(' ');
-        let cmd = args[0];
-        // log any messages sent to the bot for debugging
-        logger.debug(`${user} sent: ${message} at ${Date.now()}`);
-        args = args.splice(1);
-        switch (cmd) {                                              // bot needs to know if it will execute a command
-            // Eventually write up a helpfile
-            case 'help':
-                return helpHandler(channelID);
-                break;
-            // Eventually format this to be pretty and show a LOT more stats
-            // about the bot and what it's for
-            case 'ver':
-                bot.sendMessage({
-                    to: channelID,
-                    message: `Version: ${ver} Running on server: ${os.type()} ${os.hostname()} ${os.platform()} ${os.cpus()[0].model}`
-                });
-                break;
-            case 'register':
-                if (args[0] == undefined) {
-                    bot.sendErrMessage({
-                        channelID: channelID,
-                        errorMessage: `Please give a channel name you want me to send messages to!\n\nExample: **^register announcements**`,
-                    });
-                } else {
-                    return registrationHandler(userID, channelID, args[0], args[1]);
-                }
-            // be silent until we can confirm the user who sent the command is an admin
-        }
+    // check for channel ID in list of servers
+    if (controller.checkIfServerIsRegisteredByChannelID({ channelID })) {
+        console.log('beh');
+        return main(user, userID, channelID, message, evt);
+    }
+    else if (message.substring(0, 1) == config.commandCharDefault) {                           // listen for messages that will start with `~`
+        return main(user, userID, channelID, message, evt);
     }
 });
 
@@ -96,14 +71,12 @@ bot.on('guildCreate', function (server) {
             to: server.owner_id,
             message: '',
             embed: embed,
-            typing: true
         });
     }
 });
 
 bot.on('guildDelete', function (server) {
     logger.auth(`Left server with ID ${server.id} (${server.name})`);
-    // Unregister the server
     controller.unregisterServer({ serverID: server.id });
 })
 
@@ -150,6 +123,52 @@ bot.sendInfoMessage = function ({ channelID, infoMessage }) {
         message: '',
         embed: messageTemplate
     });
+}
+
+function main(user, userID, channelID, message, evt) {
+    let args = message.substring(1).split(' ');
+    let cmd = args[0];
+    // log any messages sent to the bot for debugging
+    logger.debug(`${user} sent: ${message} at ${Date.now()}`);
+    args = args.splice(1);
+    switch (cmd) {                                              // bot needs to know if it will execute a command
+        case 'help':
+            return helpHandler(channelID);
+            break;
+        // Eventually format this to be pretty and show a LOT more stats
+        // about the bot and what it's for
+        case 'ver':
+            bot.sendMessage({
+                to: channelID,
+                message: `Version: ${ver} Running on server: ${os.type()} ${os.hostname()} ${os.platform()} ${os.cpus()[0].model}`
+            });
+            break;
+        case 'register':
+            if (args[0] == undefined) {
+                bot.sendErrMessage({
+                    channelID: channelID,
+                    errorMessage: `Please give a channel name you want me to send messages to!\n\nExample: **^register announcements**`,
+                });
+            } else {
+                return registrationHandler(userID, channelID, args[0], args[1]);
+            }
+            break;
+        case 'changeSymbol':
+            if (args[0] == undefined || args[0].length > 1) {
+                bot.sendErrMessage({
+                    channelID: channelID,
+                    errorMessage: `Please give a single character to change.`,
+                });
+            } else if (args[0].match(/^[a-z0-9]+$/i)) {
+                bot.sendErrMessage({
+                    channelID: channelID,
+                    errorMessage: `You must us a character that is not a number or letter.`,
+                });
+            } else {
+                return changeSymbolHandler(channelID, args[0]);
+            }
+            break;
+    }
 }
 
 function checkForUpdates() {
@@ -335,7 +354,7 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
                 .then(() => {
                     bot.sendInfoMessage({
                         channelID: channelIDArg,
-                        infoMessage: `Done! This channel should receive update text on the next Warframe update!`
+                        infoMessage: `Done! This channel should receive update text on the next Warframe update! \n\nBy default the character to call the bot is **^**`
                     });
                 })
                 .catch((err) => {
@@ -374,4 +393,10 @@ function helpHandler(channelIDArg) {
         message: '',
         embed: helpEmbed
     });
+}
+
+function changeSymbolHandler(channelIDArg, symbolToUpdate) {
+    // Check user permissions on the server, they must be the owner
+
+    controller.changeServerCommandChar({ channelID: channelIDArg, newCharacter: symbolToUpdate })
 }
