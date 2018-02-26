@@ -12,7 +12,8 @@ let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 let bot = new Discord.Client({                                      // Initialize Discord Bot with config.token
     token: config.token,
-    autorun: true
+    autorun: true,
+    shard: 0
 });
 
 bot.initScheduler = function () {
@@ -362,7 +363,7 @@ function registerServer(serverID, channelIDToRegister, commandCharacter, ownerID
     bot.sendInfoMessage({
         channelID: channelIDToRegister,
         infoMessage: `This is a permissions test to ensure I have access to this channel.\n\nIf you'd like to know more, use the ^help command`
-    }, function (err, response) {
+    }, function (err) {
         if (err) {
             logger.error(err);
             return bot.sendErrMessage({
