@@ -45,6 +45,55 @@ class PatchBot {
             });
             return serversArray;
         }
+
+        this.client.getServerChannelsByID = function (serverID) {
+            let channelArray = [];
+            let serverList = this.getServers();
+            for (let server of serverList) {
+                if (server.id == serverID) {
+                    // check for the channel
+                    Object.keys(server.channels).forEach(function (key) {
+                        channelArray.push(server.channels[key]);
+                    });
+                }
+            }
+            return channelArray;
+        }
+
+        this.client.sendErrMessage = function ({ channelID, errorMessage }) {
+            let errorTemplate = new dsTemplates.errorMessageEmbedTemplate({ description: errorMessage });
+            this.sendMessage({
+                to: channelID,
+                message: '',
+                embed: errorTemplate
+            });
+        }
+
+        this.client.sendInfoMessage = function ({ channelID, infoMessage }) {
+            let messageTemplate = new dsTemplates.baseEmbedTemplate({
+                title: 'Info',
+                description: infoMessage
+            });
+            this.sendMessage({
+                to: channelID,
+                message: '',
+                embed: messageTemplate
+            });
+        }
+
+        this.client.resolveServerIDByChannelID = function (channelID) {
+            // Check what server a channel belongs to
+            let serverList = this.getServers();
+            let serverID = '';
+            for (let server of serverList) {
+                Object.keys(server.channels).forEach(function (key) {
+                    if (server.channels[key].id == channelID) {
+                        serverID = server.id;
+                    }
+                });
+            }
+            return serverID;
+        }
     }
     // Methods
     initScheduler() {
