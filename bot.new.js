@@ -52,3 +52,8 @@ patchBot.client.on('guildCreate', function (server) {
         });
     }
 });
+
+bot.on('guildDelete', function (server) {
+    logger.auth(`Left server with ID ${server.id} (${server.name})`);
+    controller.unregisterServer({ serverID: server.id });
+})

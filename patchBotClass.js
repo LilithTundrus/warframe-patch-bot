@@ -105,7 +105,7 @@ function constructWarframeUpdateMessageQueue(channelIDArg, forumPostMarkdown, th
         logger.debug('Message is over 2,000 characters, setting up paging process...');
         let chunkedMessage = commonLib.createTextChunksArrayByNewline(forumPostMarkdown);
         logger.info(`Starting recursive update message function at ${Date.now()}`)
-        return createForumPostMessageTail(channelIDArg, 0, chunkedMessage);
+        return createForumPostMessageTail(channelIDArg, 0, chunkedMessage, thisArg);
     }
 }
 
@@ -121,7 +121,7 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
                     to: channelIDArg,
                     message: chunkingObj.chunkString
                 });
-                return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr);
+                return createForumPostMessageTail(channelIDArg, chunkingObj.lastCompletedChunkIndex, chunkedMessageArr, thisArg);
             })
             .catch((err) => {
                 console.log(err)
@@ -141,6 +141,5 @@ function createForumPostMessageTail(channelIDArg, chunkIndexStart, chunkedMessag
             })
     }
 }
-
 
 module.exports = PatchBot;
