@@ -10,9 +10,8 @@ let dsTemplates = require('./lib/discord-templates');
 const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
-
 /**
- * Patch bot and all internally requiured function
+ * Patch bot and all internally requiured functionS
  * 
  * @class PatchBot
  */
@@ -29,6 +28,7 @@ class PatchBot {
         shardID = 0,
         autorun = true,
     } = {}) {
+
         this.templates = dsTemplates;
 
         this.client = new Discord.Client({                                      // Initialize Discord Bot with token
@@ -97,7 +97,7 @@ class PatchBot {
     }
     // Methods
     initScheduler() {
-        setInterval(this.checkForUpdates.bind(this), 1 * 60 * 1000);
+        setInterval(this.checkForUpdates.bind(this), 5 * 60 * 1000);
         logger.info('Initialized Warframe update check scheduler');
     }
 
@@ -112,7 +112,7 @@ class PatchBot {
                     serverQueue.forEach((entry, index) => {
                         // Add an icon here!
                         logger.info(`Notifying server with ID ${entry.serverID}`);
-                        let updateEmbed = new dsTemplates.baseEmbedTemplate({ title: 'Warframe Update', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
+                        let updateEmbed = new this.templates.baseEmbedTemplate({ title: 'Warframe Update', description: `[Forum Post](${responseObj.postURL})\n\n${responseObj.formattedMessage.substring(0, 100)}...` });
                         this.client.sendMessage({
                             to: entry.registeredChannelID,
                             message: '',

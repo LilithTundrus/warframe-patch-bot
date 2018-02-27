@@ -4,10 +4,7 @@ const ver = config.botVersion;
 let fs = require('fs');
 let os = require('os');                                             // os info lib built into node
 let Logger = require('./lib/loggerClass');                          // Custom (basic) logger solution
-let scraper = require('./lib/scraper');
-let dsTemplates = require('./lib/discord-templates');
 const logger = new Logger;
-let commonLib = require('./lib/common');
 let PatchBot = require('./patchBotClass');
 let controller = require('./lib/storageController');
 // Create a new bot, using defualt options
