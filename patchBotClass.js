@@ -4,10 +4,8 @@ const ver = config.botVersion;
 const dsTemplates = require('./lib/discord-templates');             // Set of Discord embed tempaltes
 const Discord = require('discord.io');                              // discord API wrapper
 
-
-
 /**
- * This allows for us to multi-instance the bot
+ * Patch bot and all internally requiured function
  * 
  * @class PatchBot
  */
@@ -23,7 +21,7 @@ class PatchBot {
     constructor(discordToken, {
         shardID = 0,
         autorun = true,
-    }) {
+    } = {}) {
         this.templates = dsTemplates;
 
         this.client = new Discord.Client({                                      // Initialize Discord Bot with token
@@ -32,8 +30,24 @@ class PatchBot {
             shard: shardID
         });
 
+        this.client.getServers = function () {
+            let serversArray = [];
+            let servers = this.servers
+            Object.keys(this.servers).forEach(function (key) {
+                return serversArray.push(servers[key]);
+            });
+            return serversArray;
+        }
+    }
+    // Methods
+    initScheduler() {
+        console.log('aaaa')
     }
 
 }
+
+
+
+
 
 module.exports = PatchBot;
