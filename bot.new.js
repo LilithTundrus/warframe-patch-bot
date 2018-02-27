@@ -53,7 +53,24 @@ patchBot.client.on('guildCreate', function (server) {
     }
 });
 
-bot.on('guildDelete', function (server) {
+patchBot.client.on('guildDelete', function (server) {
     logger.auth(`Left server with ID ${server.id} (${server.name})`);
     controller.unregisterServer({ serverID: server.id });
 })
+
+patchBot.client.on('message', function (user, userID, channelID, message, evt) {
+    // check for channel ID in list of servers
+    let serverFromChannelID = this.resolveServerIDByChannelID(channelID);
+    if (controller.checkIfServerIsRegistered({ serverID: serverFromChannelID })) {
+        // get the channel's hot-symbol
+        let serverData = controller.getServerDataByServerID({ serverID: serverFromChannelID });
+        if (message.substring(0, 1) == serverData.commandCharacter) {
+            logger.debug(`Message contains the correct symbol, responding`);
+            return patchBot.main(user, userID, channelID, message, evt);
+        }
+    }
+    // server is not registered, use default symbol
+    else if (message.substring(0, 1) == config.commandCharDefault && controller.checkIfServerIsRegisteredByChannelID({ channelID }) == false) {
+        return patchBot.main(user, userID, channelID, message, evt);
+    }
+});
