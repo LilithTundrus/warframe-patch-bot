@@ -27,10 +27,17 @@ You can use [This link](https://discordapp.com/oauth2/authorize?client_id=413536
 
 ## History
 
+- **Alpha 0.1.4**
+    - Reduced the amount of previously introduced jank
+    - Bot now relies on a basic class structure except for events and some storage operations
+    - Streamlined a lot of operations but also introduced a bit of 'this.' hell
+
+
 - **Alpha 0.0.9**
     - In the most jank way possible, custom characters for the bot activation is now per-server
     - Improved storageController.js code
     - General improvments but also introduced a lot of jank
+
 
 - **Alpha 0.0.5**
     - Registration functionality is done besides adding custom bot call characters
