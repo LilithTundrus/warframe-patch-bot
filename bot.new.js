@@ -13,7 +13,6 @@ let controller = require('./lib/storageController');
 // Create a new bot, using defualt options
 let patchBot = new PatchBot(config.token);
 
-
 logger.debug('Attempting to connect to Discord...');
 patchBot.client.on('ready', function (evt) {                        // do some logging and start ensure bot is running
     logger.info('Connected to Discord', `Logged in as: ${patchBot.client.username} ID: (${patchBot.client.id})`);
@@ -32,5 +31,24 @@ patchBot.client.on('disconnect', function (evt) {
         logger.info('Reconnected to Discord!');
     } else {
         logger.error(new Error('Reconnect failed'));
+    }
+});
+
+// When the bot 'joins' a server, this also happens on bot restart so that sucks
+patchBot.client.on('guildCreate', function (server) {
+    logger.auth(`Joined server named ${server.name} with ${server.member_count} members`)
+    // Check if this server is in the registeredServers JSON. If not, send a message
+    if (controller.checkIfServerIsRegistered({ serverID: server.id })) {
+        // We don't need to do anything
+        logger.info(`Server ${server.name} is already registered`);
+    } else {
+        logger.warn(`Server ${server.name} is NOT registered`);
+        // Display the intro message here (THIS NEEDS TO BE UPDATED)
+        let embed = new patchBot.templates.baseEmbedTemplate({ title: 'Welcome', description: `Hello! It seems that you or another admin on your server '**${server.name}**' has added me.\n\nPlease use the **^register** command to receive updates for Warframe when they are posted` });
+        patchBot.client.sendMessage({
+            to: server.owner_id,
+            message: '',
+            embed: embed,
+        });
     }
 });
