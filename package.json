@@ -1,13 +1,14 @@
 {
   "name": "warframe-patch-bot",
-  "version": "0.0.1",
+  "version": "0.1.4",
   "description": "Bot to watch the Warframe forums for patch notes/updates",
   "main": "bot.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "test": "npm run test"
+    "test": "npm run test",
+    "start": "node start.js"
   },
   "repository": {
     "url": "https://github.com/LilithTundrus/warframe-patch-bot"
