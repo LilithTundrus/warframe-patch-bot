@@ -10,6 +10,8 @@ let dsTemplates = require('./lib/discord-templates');
 const logger = new Logger;
 let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
+// TODO: We definitely want to reduced the amount of thisArg in code, likely with some
+// binding of functions and/or named paramaters
 /**
  * Patch bot and all internally requiured functionS
  * 
@@ -158,7 +160,7 @@ class PatchBot {
                     return registrationHandler(userID, channelID, args[0], args[1], this);
                 }
                 break;
-            case 'changeSymbol':
+            case 'set-prefix':
                 if (args[0] == undefined || args[0].length > 1) {
                     this.client.sendErrMessage({
                         channelID: channelID,
@@ -176,7 +178,7 @@ class PatchBot {
                             errorMessage: `Sorry. You are not the owner of this server`,
                         });
                     } else {
-                        return changeSymbolHandler(channelID, args[0], this);
+                        return setPrefixHandler(channelID, args[0], this);
                     }
                 }
                 break;
@@ -385,12 +387,12 @@ function helpHandler(channelIDArg, thisArg) {
     });
 }
 
-function changeSymbolHandler(channelIDArg, symbolToUpdate, thisArg) {
+function setPrefixHandler(channelIDArg, symbolToUpdate, thisArg) {
     // Check user permissions on the server, they must be the owner
     controller.changeServerCommandChar({ channelID: channelIDArg, newCharacter: symbolToUpdate });
     thisArg.client.sendInfoMessage({
         channelID: channelIDArg,
-        infoMessage: `Done! Defualt hot-character for this channel set to ${symbolToUpdate}`
+        infoMessage: `Done! Defualt command prefix for this channel set to ${symbolToUpdate}`
     });
 }
 
