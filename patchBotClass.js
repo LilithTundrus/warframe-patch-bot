@@ -12,6 +12,7 @@ let commonLib = require('./lib/common');
 let controller = require('./lib/storageController');
 // TODO: We definitely want to reduced the amount of thisArg in code, likely with some
 // binding of functions and/or named paramaters
+// TODO: Move everything to async to reduce event loop blocking
 /**
  * Patch bot and all internally requiured functionS
  * 
