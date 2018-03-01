@@ -19,5 +19,9 @@ Register this bot with a channel you own (Required to receive updates)
 If you only own one server, **<server_name>** is not required
 
 
+**^set-prefix**
 
-More to come in the future!!
+Change the prefix the bot used to be called by users in your server
+
+
+More to come in the future!
