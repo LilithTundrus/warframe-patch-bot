@@ -6,9 +6,6 @@ let os = require('os');                                             // os info l
 let Logger = require('./lib/loggerClass');                          // Custom (basic) logger solution
 const logger = new Logger;
 let PatchBot = require('./patchBotClass');
-let controller = require('./lib/storageController');
-
-// TODO: Clean up folder structure
 
 // Create a new bot, using defualt options
 let patchBot = new PatchBot(config.token);
@@ -39,7 +36,7 @@ patchBot.client.on('disconnect', function (evt) {
 patchBot.client.on('guildCreate', function (server) {
     logger.auth(`Joined server named ${server.name} with ${server.member_count} members`)
     // Check if this server is in the registeredServers JSON. If not, send a message
-    if (controller.checkIfServerIsRegistered({ serverID: server.id })) {
+    if (patchBot.controller.checkIfServerIsRegistered({ serverID: server.id })) {
         // We don't need to do anything
         logger.info(`Server ${server.name} is already registered`);
     } else {
@@ -57,22 +54,22 @@ patchBot.client.on('guildCreate', function (server) {
 patchBot.client.on('guildDelete', function (server) {
     // Remove the server
     logger.auth(`Left server with ID ${server.id} (${server.name})`);
-    controller.unregisterServer({ serverID: server.id });
+    patchBot.controller.unregisterServer({ serverID: server.id });
 })
 
 patchBot.client.on('message', function (user, userID, channelID, message, evt) {
     // check for channel ID in list of servers
     let serverFromChannelID = this.resolveServerIDByChannelID(channelID);
-    if (controller.checkIfServerIsRegistered({ serverID: serverFromChannelID })) {
+    if (patchBot.controller.checkIfServerIsRegistered({ serverID: serverFromChannelID })) {
         // get the channel's command-prefix
-        let serverData = controller.getServerDataByServerID({ serverID: serverFromChannelID });
+        let serverData = patchBot.controller.getServerDataByServerID({ serverID: serverFromChannelID });
         if (message.substring(0, 1) == serverData.commandCharacter) {
             logger.debug(`Message contains the correct symbol, responding`);
             return patchBot.main(user, userID, channelID, message, evt);
         }
     }
     // server is not registered, use default prefix
-    else if (message.substring(0, 1) == config.commandCharDefault && controller.checkIfServerIsRegisteredByChannelID({ channelID }) == false) {
+    else if (message.substring(0, 1) == config.commandCharDefault && patchBot.controller.checkIfServerIsRegisteredByChannelID({ channelID }) == false) {
         return patchBot.main(user, userID, channelID, message, evt);
     }
 });

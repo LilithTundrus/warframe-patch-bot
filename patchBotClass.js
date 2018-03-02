@@ -40,6 +40,8 @@ class PatchBot {
             shard: shardID
         });
 
+        this.controller = controller
+
         this.client.getServers = function () {
             let serversArray = [];
             let servers = this.servers
